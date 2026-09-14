@@ -6,10 +6,11 @@
 #include <QDebug>
 #include <windows.h>
 #include "account_dropdown.h"
+#include "reg.h"
 
-MainWindow::MainWindow(QWidget *parent)
+LoginWindow::LoginWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+    , ui(new Ui::LoginWindow)
 {
     ui->setupUi(this);
     this->setWindowIcon(QIcon(":/jpg/ape.jpg"));
@@ -25,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // 设置圆形头像Label
     CircularAvatarLabel* avatar = new CircularAvatarLabel(100,this);
-    avatar->setAvatar(QPixmap(":/jpg/ape.jpg"));
+    avatar->setAvatar(QPixmap(":/jpg/elep.jpg"));
     ui->avatarHolder->layout()->addWidget(avatar);
     ui->avatarHolder->layout()->setAlignment(Qt::AlignCenter);
 
@@ -163,12 +164,12 @@ MainWindow::MainWindow(QWidget *parent)
     });
 }
 
-MainWindow::~MainWindow()
+LoginWindow::~LoginWindow()
 {
     delete ui;
 }
 
-void MainWindow::mousePressEvent(QMouseEvent *event)
+void LoginWindow::mousePressEvent(QMouseEvent *event)
 {
     if(ui->menuWidget->geometry().contains(event->pos()))
     {
@@ -177,21 +178,21 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     }
 }
 
-void MainWindow::mouseMoveEvent(QMouseEvent *event)
+void LoginWindow::mouseMoveEvent(QMouseEvent *event)
 {
     if(m_bDragging)
         this->move(event->globalPosition().toPoint() - m_dragStartPos);
 }
 
-void MainWindow::mouseReleaseEvent(QMouseEvent *event)
+void LoginWindow::mouseReleaseEvent(QMouseEvent *event)
 {
     m_bDragging = false;
 }
 
-void MainWindow::on_shutdownButton_clicked() { this->close(); }
-void MainWindow::on_minimizeButton_clicked() { this->showMinimized(); }
+void LoginWindow::on_shutdownButton_clicked() { this->close(); }
+void LoginWindow::on_minimizeButton_clicked() { this->showMinimized(); }
 
-bool MainWindow::isCapsLockOn()
+bool LoginWindow::isCapsLockOn()
 {
 #ifdef Q_OS_WIN
     return (GetKeyState(VK_CAPITAL) & 0x0001) != 0;
@@ -200,7 +201,7 @@ bool MainWindow::isCapsLockOn()
 #endif
 }
 
-bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+bool LoginWindow::eventFilter(QObject *obj, QEvent *event)
 {
     if(obj == ui->password)
     {
@@ -228,3 +229,10 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
     }
     return QMainWindow::eventFilter(obj, event);
 }
+
+void LoginWindow::on_registerButton_clicked()
+{
+    Reg* r = new Reg;
+    r->show();
+}
+

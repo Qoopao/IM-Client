@@ -4,5 +4,6 @@
     </qresource>
     <qresource prefix="/jpg">
         <file>ape.jpg</file>
+        <file>elep.jpg</file>
     </qresource>
 </RCC>

@@ -8,17 +8,17 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-class MainWindow;
+class LoginWindow;
 }
 QT_END_NAMESPACE
 
-class MainWindow : public QMainWindow
+class LoginWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
-    ~MainWindow() override;
+    explicit LoginWindow(QWidget *parent = nullptr);
+    ~LoginWindow() override;
 
     bool isCapsLockOn();
 
@@ -34,8 +34,10 @@ private slots:
 
     void on_minimizeButton_clicked();
 
+    void on_registerButton_clicked();
+
 private:
-    Ui::MainWindow *ui;
+    Ui::LoginWindow *ui;
 
     // 自定义菜单窗口拖拽
     QPoint m_dragStartPos;
