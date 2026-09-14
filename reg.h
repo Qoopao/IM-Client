@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
+#include <QMouseEvent>
+#include <QTimer>
 
 namespace Ui {
 class Reg;
@@ -17,6 +19,14 @@ public:
     explicit Reg(QWidget *parent = nullptr);
     ~Reg();
 
+signals:
+    void regOk(const QString& account);
+
+protected:
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+
 private slots:
     void on_shutdownButton_clicked();
 
@@ -29,6 +39,9 @@ private:
 
 private:
     Ui::Reg *ui;
+
+    QPoint m_dragStartPos;
+    bool m_bDragging = false;
 };
 
 #endif // REG_H

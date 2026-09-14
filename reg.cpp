@@ -15,7 +15,6 @@ Reg ::Reg(QWidget *parent)
                    | Qt::WindowMaximizeButtonHint);
     ui->shutdownButton->setText("\u00d7");
 
-
     // 表单
     ui->phoneNumber->setPlaceholderText("请输入电话号码");
     ui->phoneNumber->setAlignment(Qt::AlignCenter);
@@ -151,7 +150,32 @@ bool Reg::meetPasswordStandard(const QString& password){
 void Reg::on_registerButton_clicked()
 {
     if(meetPhoneNumberStandard(ui->phoneNumber->text()) && meetUserNameStandard(ui->userName->text()) && meetPasswordStandard(ui->password->text())){
-        qDebug()<< "待开发";
+        // 后端返回一个账号
+        QString account = "2510564681";
+        // 多次点击会出问题，真实情况需要进行修改
+        QTimer::singleShot(3000, this, [=](){
+            emit regOk(account);
+        });
+
     }
 }
 
+void Reg::mousePressEvent(QMouseEvent *event)
+{
+    if(ui->menuWidget->geometry().contains(event->pos()))
+    {
+        m_bDragging = true;
+        m_dragStartPos = event->globalPosition().toPoint() - this->frameGeometry().topLeft();
+    }
+}
+
+void Reg::mouseMoveEvent(QMouseEvent *event)
+{
+    if(m_bDragging)
+        this->move(event->globalPosition().toPoint() - m_dragStartPos);
+}
+
+void Reg::mouseReleaseEvent(QMouseEvent *event)
+{
+    m_bDragging = false;
+}

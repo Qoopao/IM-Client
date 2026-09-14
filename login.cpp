@@ -1,5 +1,5 @@
 #include "login.h"
-#include "./ui_login.h"
+#include "ui_login.h"
 #include "avatar_label.h"
 #include <QPixmap>
 #include <QStyle>
@@ -162,6 +162,7 @@ LoginWindow::LoginWindow(QWidget *parent)
             ui->rememberPwd->setChecked(true);
         }
     });
+
 }
 
 LoginWindow::~LoginWindow()
@@ -232,7 +233,20 @@ bool LoginWindow::eventFilter(QObject *obj, QEvent *event)
 
 void LoginWindow::on_registerButton_clicked()
 {
-    Reg* r = new Reg;
+    Reg* r = new Reg(this);
+    // 防止多次点击注册按钮
+    ui->registerButton->setEnabled(false);
+    // 接收注册成功信号
+    connect(r,&Reg::regOk,this,[this](const QString& account){
+        ui->account->setText(account);
+    });
+    // 防止跨线程野指针
+    connect(r,&Reg::regOk,r,&Reg::close);
+    r->setAttribute(Qt::WA_DeleteOnClose);
+
+    connect(r, &Reg::destroyed, this, [this](){
+        ui->registerButton->setEnabled(true);
+    });
     r->show();
 }
 

@@ -5,6 +5,7 @@
 #include <QMouseEvent>
 #include <QMovie>
 #include <QRegularExpressionValidator>
+#include <QPoint>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
