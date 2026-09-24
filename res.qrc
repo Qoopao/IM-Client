@@ -1,9 +1,12 @@
 <RCC>
     <qresource prefix="/gif">
-        <file>fireworkbg.gif</file>
+        <file alias="firework">media/image/fireworkbg.gif</file>
     </qresource>
     <qresource prefix="/jpg">
-        <file>ape.jpg</file>
-        <file>elep.jpg</file>
+        <file alias="ape">media/image/ape.jpg</file>
+        <file alias="elep">media/image/elep.jpg</file>
+    </qresource>
+    <qresource prefix="/cert">
+        <file>ca.crt</file>
     </qresource>
 </RCC>

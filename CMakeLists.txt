@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 
+set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+    CACHE STRING "Vcpkg toolchain file")
+
 project(IM-client VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
@@ -11,24 +14,42 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Network WebSockets)
+find_package(protobuf CONFIG REQUIRED)
+find_package(gRPC CONFIG REQUIRED)
+
+if(MSVC)
+    add_compile_options(/utf-8)
+endif()
 
 set(PROJECT_SOURCES
         main.cpp
-        login.cpp
-        login.h
-        login.ui
+        src/ui/login.cpp
+        src/ui/login.h
+        src/ui/login.ui
 )
+
+file(GLOB_RECURSE PROTOFILES "src/proto/*.*")
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(IM-client
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        avatar_label.h
-        avatar_label.cpp
+        src/ui/avatarLabel.h
+        src/ui/avatarLabel.cpp
         res.qrc
-        account_dropdown.h
-        account_dropdown.cpp
-        reg.h reg.cpp reg.ui
+        src/ui/accountDropdown.h
+        src/ui/accountDropdown.cpp
+        src/ui/reg.h src/ui/reg.cpp src/ui/reg.ui
+        src/ui/loginFailed.h src/ui/loginFailed.cpp src/ui/loginFailed.ui
+        src/ui/regFailed.h src/ui/regFailed.cpp src/ui/regFailed.ui
+        src/controller/authController.h
+        src/controller/authController.cpp
+        src/model/loginResult.h
+        src/model/authModel.h src/model/authModel.cpp
+        src/dao/remoteAuthDao.h src/dao/remoteAuthDao.cpp
+        test/testtls.h test/testtls.cpp
+        ${PROTOFILES}
 
 
 
@@ -52,7 +73,8 @@ else()
     endif()
 endif()
 
-target_link_libraries(IM-client PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(IM-client PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt6::Network Crypt32 Qt6::WebSockets protobuf::libprotobuf
+                            gRPC::grpc++)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
