@@ -31,7 +31,7 @@ void AuthController::login(const QString& account, const QString& password)
         m_model->setFailed(QStringLiteral("账号格式错误"));
         return;
     }
-    // qInfo() << QString::number(acc);
+
 
     m_remoteDao.sendAuth(acc, password,
         [this, acc](const model::LoginResult& result) {

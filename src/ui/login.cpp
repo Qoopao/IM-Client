@@ -13,11 +13,10 @@
 LoginWindow::LoginWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::LoginWindow)
-    , m_controller(&m_model)  // [MVC-REFACTOR] 原 &m_manager
+    , m_controller(&m_model)
 {
     ui->setupUi(this);
 
-    // ===== [MVC-REFACTOR] 开始：订阅 Model 状态，登录结果反馈到界面 =====
     connect(&m_model, &model::AuthModel::statusChanged, this,
             [this](model::AuthModel::Status status) {
                 if (status == model::AuthModel::Status::LoggingIn) {
@@ -26,14 +25,14 @@ LoginWindow::LoginWindow(QWidget *parent)
                 }
                 ui->loginButton->setEnabled(true);
                 if (status == model::AuthModel::Status::Failed) {
-                    QMessageBox::warning(this, QStringLiteral("登录失败"),
-                                         m_model.getErrorMessage());
+                    LoginFailed *lfw = new LoginFailed(this);
+                    lfw->setReason(m_model.getErrorMessage());
+                    lfw->exec();
+                    lfw->setAttribute(Qt::WA_DeleteOnClose);
                 } else if (status == model::AuthModel::Status::Success) {
-                    QMessageBox::information(this, QStringLiteral("登录成功"),
-                                             QStringLiteral("欢迎，%1").arg(m_model.getAccount()));
+                    QMessageBox::information(this, QStringLiteral("登录成功"), QStringLiteral("欢迎，%1").arg(m_model.getAccount()));
                 }
             });
-    // ===== [MVC-REFACTOR] 结束 =====
 
     this->setWindowIcon(QIcon(":/jpg/ape"));
 
@@ -276,8 +275,8 @@ void LoginWindow::on_registerButton_clicked()
 
 void LoginWindow::on_loginButton_clicked()
 {
-    // ===== [MVC-REFACTOR] 开始：登录按钮接入 Controller（原为 testTLS 占位 + 未初始化指针 bug） =====
+
     m_controller.login(ui->account->text(), ui->password->text());
-    // ===== [MVC-REFACTOR] 结束 =====
+
 }
 

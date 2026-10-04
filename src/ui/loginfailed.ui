@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>425</width>
-    <height>285</height>
+    <width>300</width>
+    <height>180</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,14 +18,14 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>425</width>
-    <height>285</height>
+    <width>300</width>
+    <height>180</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>425</width>
-    <height>285</height>
+    <width>300</width>
+    <height>180</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -49,6 +49,12 @@
    </property>
    <item>
     <widget class="QWidget" name="menuWidget" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="minimumSize">
       <size>
        <width>0</width>
@@ -62,8 +68,11 @@
       </size>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>80</number>
+      </property>
       <property name="leftMargin">
-       <number>148</number>
+       <number>122</number>
       </property>
       <property name="topMargin">
        <number>1</number>
@@ -147,8 +156,8 @@ QPushButton:hover{
      </layout>
     </widget>
    </item>
-   <item>
-    <widget class="QLabel" name="resonLabel">
+   <item alignment="Qt::AlignmentFlag::AlignHCenter">
+    <widget class="QLabel" name="reasonLabel">
      <property name="text">
       <string>错误信息：</string>
      </property>

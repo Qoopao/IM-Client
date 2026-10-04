@@ -16,6 +16,8 @@ public:
     explicit LoginFailed(QWidget *parent = nullptr);
     ~LoginFailed();
 
+    void setReason(QString reason);
+
 protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;

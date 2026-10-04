@@ -11,6 +11,7 @@
 #include <QSslSocket>
 #include <QUrl>
 
+
 namespace dao {
 
 RemoteAuthDao::RemoteAuthDao(QObject* parent)
@@ -19,63 +20,38 @@ RemoteAuthDao::RemoteAuthDao(QObject* parent)
     m_timeoutTimer.setSingleShot(true);
     connect(&m_timeoutTimer, &QTimer::timeout, this, &RemoteAuthDao::onTimeout);
 
-    // 1. 证书固定：把自签名证书加进默认 SSL 配置
+    // 证书加进默认 SSL 配置
     loadTrustAnchor();
 
-    // 2. 创建 WebSocket
-    m_socket = new QWebSocket(QString(), QWebSocketProtocol::VersionLatest, this);
-    m_socket->setSslConfiguration(QSslConfiguration::defaultConfiguration());
+}
 
-    // 3. 连接slot
-    connect(m_socket, &QWebSocket::connected, this, &RemoteAuthDao::onConnected);
-    connect(m_socket, &QWebSocket::disconnected, this, &RemoteAuthDao::onDisconnected);
-    connect(m_socket, &QWebSocket::binaryMessageReceived, this, &RemoteAuthDao::onAuthRespReceived);
-    connect(m_socket,QOverload<const QList<QSslError>&>::of(&QWebSocket::sslErrors), this, &RemoteAuthDao::onSslErrors);
-
-    // 发起连接（先 TLS，再 WebSocket 握手，由QT内部完成）
-    m_socket->open(QUrl(QString::fromUtf8(kWsUrl)));
+RemoteAuthDao::~RemoteAuthDao(){
+    m_socket->deleteLater();
+    m_socket = nullptr;
 }
 
 void RemoteAuthDao::sendAuth(uint64_t account, const QString& password, Callback callback)
 {
 
-
-    if (m_socket->state() != QAbstractSocket::ConnectedState) {
-        model::LoginResult r;
-        r.error = model::LoginError::NetworkError;
-        r.message = QStringLiteral("WebSocket 未连接");
-        callback(r);
-        return;
-    }
     if (m_callback) return;   // 防并发
 
     m_callback = std::move(callback);
     m_timedOut = false;
     m_account  = account;
 
-    // 生成 requestId（后端会原样回填，用来匹配响应）
-    m_pendingRequestId = QString::number(QDateTime::currentMSecsSinceEpoch());
+    // 创建 WebSocket
+    m_socket = new QWebSocket(QString(), QWebSocketProtocol::VersionLatest, this);
+    m_socket->setSslConfiguration(QSslConfiguration::defaultConfiguration());
 
-    sdkws::SdkWSReq req;
-    req.set_account(account);
-    req.set_data(password.toStdString());
-    req.set_type(101);   // 后端 doReadAuth 不看 type，但保持和你原代码一致
-    req.set_requestid(m_pendingRequestId.toStdString());
+    // 连接slot
+    connect(m_socket, &QWebSocket::connected, this, &RemoteAuthDao::onConnected);
+    connect(m_socket, &QWebSocket::disconnected, this, &RemoteAuthDao::onDisconnected);
+    connect(m_socket, &QWebSocket::binaryMessageReceived, this, &RemoteAuthDao::onAuthRespReceived);
+    connect(m_socket,QOverload<const QList<QSslError>&>::of(&QWebSocket::sslErrors), this, &RemoteAuthDao::onSslErrors);
 
-    sendReq(req);
-    m_timeoutTimer.start(kTimeoutMs);
-}
-
-void RemoteAuthDao::sendReq(const sdkws::SdkWSReq& req)
-{
-
-    const std::string bin = req.SerializeAsString();
-
-    qDebug() << "account=" << req.account()
-             << "bin_size=" << bin.size()
-             << "hex=" << QByteArray(bin.data(), bin.size()).toHex();
-
-    m_socket->sendBinaryMessage(QByteArray(bin.data(), static_cast<int>(bin.size())));
+    // 发起连接（先 TLS，再 WebSocket 握手，由QT内部完成）
+    genBin(account,password);
+    m_socket->open(QUrl(QString::fromUtf8(kWsUrl)));        // 异步的
 }
 
 
@@ -91,6 +67,7 @@ void RemoteAuthDao::onAuthRespReceived(const QByteArray& msg)
     const QString reqId = QString::fromStdString(resp.requestid());
     const int type = resp.type();
     const QString errCode = QString::fromStdString(resp.errorcode());
+    m_token = QString::fromStdString(resp.token());
 
     // 2. 处理认证响应（登录发起的那次请求）
     if (m_callback && reqId == m_pendingRequestId) {
@@ -160,6 +137,9 @@ void RemoteAuthDao::onTimeout()
         r.message = QStringLiteral("登录超时");
         cb(r);
     }
+
+    m_socket->deleteLater();
+    m_socket = nullptr;
 }
 
 void RemoteAuthDao::cancel()
@@ -168,18 +148,22 @@ void RemoteAuthDao::cancel()
     m_callback = nullptr;
     m_pendingRequestId.clear();
     m_timedOut = false;
+
+    m_socket->deleteLater();
+    m_socket = nullptr;
 }
 
 void RemoteAuthDao::onConnected()
 {
-    qInfo() << "RemoteAuthDao: WebSocket connected";
+    qInfo() << "RemoteAuthDao: WebSocket connected";            // TLS握手+websocket握手成功
+    m_socket->sendBinaryMessage(QByteArray(m_bin.data(), static_cast<int>(m_bin.size())));
+    m_timeoutTimer.start(kTimeoutMs);           // 开始连接计时
 }
 
 void RemoteAuthDao::onDisconnected()
 {
-    qInfo() << "RemoteAuthDao: WebSocket disconnected";
 
-    qInfo() << "RemoteAuthDao: WebSocket disconnected"
+    qInfo() << "RemoteAuthDao: WebSocket disconnected. "
             << "code =" << m_socket->closeCode()
             << "reason =" << m_socket->closeReason()
             << "error =" << m_socket->errorString();
@@ -196,13 +180,22 @@ void RemoteAuthDao::onDisconnected()
         r.message = QStringLiteral("连接已断开");
         cb(r);
     }
+
+    m_socket->close(QWebSocketProtocol::CloseCodeNormal, "client close");
+    m_socket->deleteLater();
+    m_socket = nullptr;
 }
 
 void RemoteAuthDao::onSslErrors(const QList<QSslError>& errors)
 {
     m_hadSslError = true;
-    if (!errors.isEmpty())
+    if (!errors.isEmpty()){
         m_sslErrorString = errors.first().errorString();
+    }
+
+    m_socket->close(QWebSocketProtocol::CloseCodeNormal, "client close");
+    m_socket->deleteLater();
+    m_socket = nullptr;
 }
 
 void RemoteAuthDao::loadTrustAnchor()
@@ -211,8 +204,7 @@ void RemoteAuthDao::loadTrustAnchor()
     // 使用系统 CA + 域名校验即可。
     const QString certPath = findCertFile();
     if (certPath.isEmpty()) {
-        qWarning() << "RemoteAuthDao: 未找到 server.crt，TLS 校验将按系统 CA 进行"
-                      "（自签名服务端将校验失败）";
+        qWarning() << "RemoteAuthDao: 未找到 server.crt";
         return;
     }
     const QList<QSslCertificate> certs =
@@ -242,6 +234,19 @@ QString RemoteAuthDao::findCertFile()
             return p;
     }
     return {};
+}
+
+void RemoteAuthDao::genBin(uint64_t account, const QString& password){
+    // 生成 requestId（后端会原样回填，用来匹配响应）
+    m_pendingRequestId = QString::number(QDateTime::currentMSecsSinceEpoch());
+
+    sdkws::SdkWSReq req;
+    req.set_account(account);
+    req.set_data(password.toStdString());
+    req.set_type(101);
+    req.set_requestid(m_pendingRequestId.toStdString());
+
+    m_bin = req.SerializeAsString();
 }
 
 } // namespace dao

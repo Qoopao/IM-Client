@@ -5,7 +5,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    LoginWindow w;
-    w.show();
+    std::unique_ptr<LoginWindow> loginW = std::make_unique<LoginWindow>();
+    loginW->show();
     return QCoreApplication::exec();
 }

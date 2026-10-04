@@ -12,6 +12,17 @@ RegFailed::RegFailed(QWidget *parent)
                    | Qt::WindowMinimizeButtonHint
                    | Qt::WindowMaximizeButtonHint);
     ui->shutdownButton->setText("\u00d7");
+
+    this->setStyleSheet(R"(background-color: white;)");
+    ui->reasonLabel->setAlignment(Qt::AlignCenter);
+
+    if(parent){
+        this->adjustSize();
+        QRect parentRect = parent->geometry();
+        QRect dialogRect = this->frameGeometry();
+        dialogRect.moveCenter(parentRect.center());
+        this->move(dialogRect.topLeft());
+    }
 }
 
 RegFailed::~RegFailed()

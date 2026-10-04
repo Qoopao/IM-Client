@@ -20,13 +20,14 @@ public:
     using Callback = std::function<void(const model::LoginResult&)>;
 
     explicit RemoteAuthDao(QObject* parent = nullptr);
-    ~RemoteAuthDao() = default;
+    ~RemoteAuthDao();
 
     void sendAuth(uint64_t account, const QString& password, Callback callback);
     void cancel();
 
     QString findCertFile();
     void loadTrustAnchor();
+    void genBin(uint64_t account, const QString& password);
 
 private slots:
     void onConnected();
@@ -36,12 +37,13 @@ private slots:
     void onSslErrors(const QList<QSslError>& errors);
 
 private:
-    void sendReq(const sdkws::SdkWSReq& req);
     model::LoginResult parseResp(const sdkws::SdkWSResp& resp);
 
 private:
     QWebSocket* m_socket = nullptr;
     QTimer      m_timeoutTimer;
+
+    std::string m_bin;                  // 二进制认证信息
 
     uint64_t    m_account = 0;       // 当前登录账号
     QString     m_token;             // 认证成功后保存，供后续请求用
