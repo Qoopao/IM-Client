@@ -13,12 +13,12 @@
 LoginWindow::LoginWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::LoginWindow)
-    , m_controller(&m_model)
 {
     ui->setupUi(this);
 
-    connect(&m_model, &model::AuthModel::statusChanged, this,
-            [this](model::AuthModel::Status status) {
+    connect(&m_controller, &controller::AuthController::stateChanged, this,
+            [this](const model::AuthModel& state) {
+                const auto status = state.status;
                 if (status == model::AuthModel::Status::LoggingIn) {
                     ui->loginButton->setText(QStringLiteral("登录中…"));
                     ui->loginButton->setEnabled(false);
@@ -28,11 +28,11 @@ LoginWindow::LoginWindow(QWidget *parent)
                 ui->loginButton->setEnabled(true);
                 if (status == model::AuthModel::Status::Failed) {
                     LoginFailed *lfw = new LoginFailed(this);
-                    lfw->setReason(m_model.getErrorMessage());
+                    lfw->setReason(state.errorMessage);
                     lfw->exec();
                     lfw->setAttribute(Qt::WA_DeleteOnClose);
                 } else if (status == model::AuthModel::Status::Success) {
-                    QMessageBox::information(this, QStringLiteral("登录成功"), QStringLiteral("欢迎，%1").arg(m_model.getAccount()));
+                    QMessageBox::information(this, QStringLiteral("登录成功"), QStringLiteral("欢迎，%1").arg(state.account));
                 }
             });
 

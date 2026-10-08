@@ -1,7 +1,6 @@
 #include "reg.h"
 #include "ui_reg.h"
 #include "regfailed.h"
-#include "../dao/remoteregdao.h"
 #include <QCloseEvent>
 
 Reg ::Reg(QWidget *parent)
@@ -9,7 +8,16 @@ Reg ::Reg(QWidget *parent)
     , ui(new Ui::Reg)
 {
     ui->setupUi(this);
-    m_regDao = new dao::RemoteRegDao(this);
+    connect(&m_controller, &controller::RegController::stateChanged, this,
+            [this](const model::RegModel& state) {
+                setRegistering(state.status == model::RegModel::Status::Registering);
+                if (state.status == model::RegModel::Status::Success) {
+                    ui->password->clear();
+                    emit regOk(QString::number(state.result.account));
+                } else if (state.status == model::RegModel::Status::Failed) {
+                    showRegistrationError(state.result.message);
+                }
+            });
     this->setFocusPolicy(Qt::ClickFocus);
 
     // 设置菜单栏
@@ -24,24 +32,15 @@ Reg ::Reg(QWidget *parent)
     ui->phoneNumber->setPlaceholderText("请输入电话号码");
     ui->phoneNumber->setAlignment(Qt::AlignCenter);
     ui->phoneNumber->setMaxLength(11);
-    QRegularExpression phoneReg(R"(^1[3-9]\d{9}$)");
-    QRegularExpressionValidator *phoneVal = new QRegularExpressionValidator(phoneReg,this);
-    ui->phoneNumber->setValidator(phoneVal);
     ui->phoneStandard->setStyleSheet(R"(color: red;)");
 
     ui->userName->setPlaceholderText("请输入用户名");
     ui->userName->setAlignment(Qt::AlignCenter);
     ui->usernameStandard->setWordWrap(true);
-    QRegularExpression userNameReg(R"(^[\p{Han}a-zA-Z][\p{Han}a-zA-Z0-9_]{2,9}$)");
-    QRegularExpressionValidator* userNameVal = new QRegularExpressionValidator(userNameReg,this);
-    ui->userName->setValidator(userNameVal);
     ui->usernameStandard->setStyleSheet(R"(color: gray;)");
 
     ui->password->setPlaceholderText("请设置密码");
     ui->password->setAlignment(Qt::AlignCenter);
-    QRegularExpression pwdReg(R"(^[A-Za-z0-9]{6,16}$)");            // 6到16位，数字或字母
-    QRegularExpressionValidator* pwdVal = new QRegularExpressionValidator(pwdReg,this);
-    ui->password->setValidator(pwdVal);
     ui->passwordStandard->setStyleSheet(R"(color: gray;)");
 
     ui->passwordStandard->setText("密码必须同时包含字母与数字，长度为6到16。");
@@ -121,7 +120,7 @@ Reg ::Reg(QWidget *parent)
 Reg::~Reg()
 {
     qDebug() << "[~Reg] enter";
-    m_regDao->cancel();
+    m_controller.cancel();
     qDebug() << "[~Reg] cancel done";
     delete ui;
     qDebug() << "[~Reg] exit";
@@ -133,75 +132,28 @@ void Reg::on_shutdownButton_clicked()
 }
 
 
-bool Reg::meetPhoneNumberStandard(const QString& phonenumber){
-    auto val = qobject_cast<const QRegularExpressionValidator*>(ui->phoneNumber->validator());
-    if(val){
-        return val->regularExpression().match(phonenumber).hasMatch();
-    }
-    return false;
+bool Reg::meetPhoneNumberStandard(const QString& value)
+{
+    return m_controller.validPhone(value);
 }
-bool Reg::meetUserNameStandard(const QString& username){
-    auto val = qobject_cast<const QRegularExpressionValidator*>(ui->userName->validator());
-    if(val){
-        return val->regularExpression().match(username).hasMatch();
-    }
-    return false;
+
+bool Reg::meetUserNameStandard(const QString& value)
+{
+    return m_controller.validNickname(value);
 }
-bool Reg::meetPasswordStandard(const QString& password){
-    auto val = qobject_cast<const QRegularExpressionValidator*>(ui->password->validator());
-    if(val){
-        return val->regularExpression().match(password).hasMatch() && password.contains(QRegularExpression("[A-Za-z]")) && password.contains(QRegularExpression("[0-9]"));
-    }
-    return false;
+
+bool Reg::meetPasswordStandard(const QString& value)
+{
+    return m_controller.validPassword(value);
 }
 
 void Reg::on_registerButton_clicked()
 {
-    if (m_registering)
-        return;
-
-    const QString phone = ui->phoneNumber->text();
-    const QString nickname = ui->userName->text();
-    const QString password = ui->password->text();
-    if (!meetPhoneNumberStandard(phone)) {
-        ui->phoneNumber->setFocus();
-        showRegistrationError(QStringLiteral("请正确填写手机号。"));
-        return;
-    }
-    if (!meetUserNameStandard(nickname)) {
-        ui->userName->setFocus();
-        showRegistrationError(ui->usernameStandard->text());
-        return;
-    }
-    if (!meetPasswordStandard(password)) {
-        ui->password->setFocus();
-        showRegistrationError(ui->passwordStandard->text());
-        return;
-    }
-
-    setRegistering(true);
-    m_regDao->sendReg(phone, nickname, password, [this](const model::RegResult& result) {
-        qDebug() << "[R1] Reg callback enter, error=" << int(result.error);
-        setRegistering(false);
-        qDebug() << "[R2] Reg callback: setRegistering done";
-        if (result.error == model::RegError::None) {
-            qDebug() << "[R3] Reg callback: success, account=" << result.account;
-            ui->password->clear();
-            qDebug() << "[R4] Reg callback: password cleared, before emit";
-            emit regOk(QString::number(result.account));
-            qDebug() << "[R5] Reg callback: after emit";      // ← 关键
-            return;
-        }
-        qDebug() << "[R6] Reg callback: failure path";
-        showRegistrationError(result.message.isEmpty()
-                                  ? QStringLiteral("注册失败，请稍后重试。") : result.message);
-        qDebug() << "[R7] Reg callback: error shown";
-    });
+    m_controller.registerAccount(ui->phoneNumber->text(), ui->userName->text(), ui->password->text());
 }
 
 void Reg::setRegistering(bool registering)
 {
-    m_registering = registering;
     ui->registerButton->setEnabled(!registering);
     ui->registerButton->setText(registering ? QStringLiteral("注册中…") : QStringLiteral("立即注册"));
     ui->phoneNumber->setEnabled(!registering);
@@ -221,7 +173,7 @@ void Reg::showRegistrationError(const QString& message)
 void Reg::closeEvent(QCloseEvent* event)
 {
     qDebug() << "[CE1] Reg::closeEvent enter";
-    m_regDao->cancel();
+    m_controller.cancel();
     qDebug() << "[CE2] Reg::closeEvent: cancel done";
     setRegistering(false);
     qDebug() << "[CE3] Reg::closeEvent: setRegistering done";

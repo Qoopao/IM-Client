@@ -3,13 +3,12 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QNetworkRequest>
+#include <QDateTime>
 #include <QSslCertificate>
 #include <QSslConfiguration>
 #include <QSslSocket>
 #include <QUrl>
+#include <utility>
 
 
 namespace dao {
@@ -26,18 +25,16 @@ RemoteAuthDao::RemoteAuthDao(QObject* parent)
 }
 
 RemoteAuthDao::~RemoteAuthDao(){
-    m_socket->deleteLater();
-    m_socket = nullptr;
+    cancel();
 }
 
 void RemoteAuthDao::sendAuth(uint64_t account, const QString& password, Callback callback)
 {
 
-    if (m_callback) return;   // 防并发
+    if (m_callback || !callback) return;   // 防并发
 
+    releaseSocket();
     m_callback = std::move(callback);
-    m_timedOut = false;
-    m_account  = account;
 
     // 创建 WebSocket
     m_socket = new QWebSocket(QString(), QWebSocketProtocol::VersionLatest, this);
@@ -68,7 +65,6 @@ void RemoteAuthDao::onAuthRespReceived(const QByteArray& msg)
     const QString reqId = QString::fromStdString(resp.requestid());
     const int type = resp.type();
     const QString errCode = QString::fromStdString(resp.errorcode());
-    m_token = QString::fromStdString(resp.token());
 
     // 2. 处理认证响应（登录发起的那次请求）
     if (m_callback && reqId == m_pendingRequestId) {
@@ -79,9 +75,7 @@ void RemoteAuthDao::onAuthRespReceived(const QByteArray& msg)
         m_pendingRequestId.clear();
 
         model::LoginResult result = parseResp(resp);
-        if (result.error == model::LoginError::None) {
-            m_token = QString::fromStdString(resp.token());
-        }
+
         cb(result);
         return;
     }
@@ -105,7 +99,8 @@ model::LoginResult RemoteAuthDao::parseResp(const sdkws::SdkWSResp& resp)
     const QString code = QString::fromStdString(resp.errorcode());
     const QString err = QString::fromStdString(resp.errormsg());
 
-    if (code == "" && err == "") {
+    if ((code.isEmpty() || code == "0") && err.isEmpty()) {
+        result.token = QString::fromStdString(resp.token());
         result.error = model::LoginError::None;
         return result;
     } else if (code == "INVALID_PARAM") {
@@ -134,21 +129,14 @@ model::LoginResult RemoteAuthDao::parseResp(const sdkws::SdkWSResp& resp)
 
 void RemoteAuthDao::onTimeout()
 {
-    m_timedOut = true;
-
-    Callback cb = std::move(m_callback);
-    m_callback = nullptr;
-    m_pendingRequestId.clear();
-
-    if (cb) {
-        model::LoginResult r;
-        r.error = model::LoginError::NetworkError;
-        r.message = QStringLiteral("登录超时，请稍后重试");
-        cb(r);
+    Callback callback = std::move(m_callback);
+    cancel();
+    if (callback) {
+        model::LoginResult result;
+        result.error = model::LoginError::NetworkError;
+        result.message = QStringLiteral("登录超时，请稍后重试");
+        callback(result);
     }
-
-    m_socket->deleteLater();
-    m_socket = nullptr;
 }
 
 void RemoteAuthDao::cancel()
@@ -156,67 +144,57 @@ void RemoteAuthDao::cancel()
     m_timeoutTimer.stop();
     m_callback = nullptr;
     m_pendingRequestId.clear();
-    m_timedOut = false;
+    m_bin.clear();
 
-    m_socket->deleteLater();
-    m_socket = nullptr;
+    releaseSocket();
 }
 
 void RemoteAuthDao::onConnected()
 {
     qInfo() << "RemoteAuthDao: WebSocket connected";            // TLS握手+websocket握手成功
+    if (!m_socket)
+        return;
     m_socket->sendBinaryMessage(QByteArray(m_bin.data(), static_cast<int>(m_bin.size())));
 
 }
 
 void RemoteAuthDao::onDisconnected()
 {
-
-    qInfo() << "RemoteAuthDao: WebSocket disconnected. "
-            << "code =" << m_socket->closeCode()
-            << "reason =" << m_socket->closeReason()
-            << "error =" << m_socket->errorString();
-
-    // 有等待中的回调，通知失败
-    if (m_callback) {
-        Callback cb = std::move(m_callback);
-        m_callback = nullptr;
-        m_pendingRequestId.clear();
-        m_timeoutTimer.stop();
-
-        model::LoginResult r;
-        r.error = model::LoginError::NetworkError;
-        r.message = QStringLiteral("服务器连接失败");
-        cb(r);
+    m_timeoutTimer.stop();
+    Callback callback = std::move(m_callback);
+    m_callback = nullptr;
+    m_pendingRequestId.clear();
+    releaseSocket();
+    if (callback) {
+        model::LoginResult result;
+        result.error = model::LoginError::NetworkError;
+        result.message = QStringLiteral("服务器连接失败");
+        callback(result);
     }
-
-    m_socket->close(QWebSocketProtocol::CloseCodeNormal, "client close");
-    m_socket->deleteLater();
-    m_socket = nullptr;
 }
 
 void RemoteAuthDao::onSslErrors(const QList<QSslError>& errors)
 {
-    m_hadSslError = true;
-    if (!errors.isEmpty()){
-        m_sslErrorString = errors.first().errorString();
+    if (errors.isEmpty())
+        return;
+    Callback callback = std::move(m_callback);
+    cancel();
+    if (callback) {
+        model::LoginResult result;
+        result.error = model::LoginError::NetworkError;
+        result.message = QStringLiteral("SSL握手失败：") + errors.first().errorString();
+        callback(result);
     }
+}
 
-    if (m_callback) {
-        Callback cb = std::move(m_callback);
-        m_callback = nullptr;
-        m_pendingRequestId.clear();
-        m_timeoutTimer.stop();
-
-        model::LoginResult r;
-        r.error = model::LoginError::NetworkError;
-        r.message = QStringLiteral("SSL握手失败");
-        cb(r);
-    }
-
-    m_socket->close(QWebSocketProtocol::CloseCodeNormal, "client close");
-    m_socket->deleteLater();
-    m_socket = nullptr;
+void RemoteAuthDao::releaseSocket()
+{
+    auto* socket = std::exchange(m_socket, nullptr);
+    if (!socket)
+        return;
+    socket->disconnect(this);
+    socket->abort();
+    socket->deleteLater();
 }
 
 void RemoteAuthDao::loadTrustAnchor()

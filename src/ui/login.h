@@ -7,7 +7,6 @@
 #include <QRegularExpressionValidator>
 #include <QPoint>
 #include "../controller/authController.h"
-#include "../model/AuthModel.h"  // [MVC-REFACTOR] 原 ../manager/authManager.h；移除 testtls 依赖
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -48,7 +47,6 @@ private:
     QPoint m_dragStartPos;
     bool m_bDragging = false;
 
-    model::AuthModel m_model;                // [MVC-REFACTOR] Model：会话状态源，View 订阅
     controller::AuthController m_controller; // Controller：动作入口
 };
 #endif // LOGIN_H

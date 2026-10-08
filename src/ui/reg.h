@@ -7,7 +7,7 @@
 #include <QMouseEvent>
 #include <QTimer>
 
-namespace dao { class RemoteRegDao; }
+#include "../controller/regController.h"
 class QCloseEvent;
 
 namespace Ui {
@@ -45,8 +45,7 @@ private:
 
 private:
     Ui::Reg *ui;
-    dao::RemoteRegDao* m_regDao = nullptr;
-    bool m_registering = false;
+    controller::RegController m_controller;
 
     QPoint m_dragStartPos;
     bool m_bDragging = false;

@@ -25,6 +25,7 @@ public:
     void sendAuth(uint64_t account, const QString& password, Callback callback);
     void cancel();
 
+private:
     QString findCertFile();
     void loadTrustAnchor();
     void genBin(uint64_t account, const QString& password);
@@ -37,6 +38,7 @@ private slots:
     void onSslErrors(const QList<QSslError>& errors);
 
 private:
+    void releaseSocket();
     model::LoginResult parseResp(const sdkws::SdkWSResp& resp);
 
 private:
@@ -45,15 +47,10 @@ private:
 
     std::string m_bin;                  // 二进制认证信息
 
-    uint64_t    m_account = 0;       // 当前登录账号
-    QString     m_token;             // 认证成功后保存，供后续请求用
 
     Callback    m_callback;          // 当前登录回调
     QString     m_pendingRequestId;  // 当前登录请求的 requestId
 
-    bool        m_timedOut = false;
-    bool        m_hadSslError = false;
-    QString     m_sslErrorString;
 
     static constexpr int kTimeoutMs = 8000;
     static constexpr const char* kWsUrl ="wss://127.0.0.1:6666";
