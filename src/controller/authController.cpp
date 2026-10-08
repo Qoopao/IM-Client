@@ -39,10 +39,10 @@ void AuthController::login(const QString& account, const QString& password)
                 m_model->setSuccess(QString::number(acc));
             } else if (result.error == model::LoginError::Cancelled) {
                 m_model->reset();
-            } else {
-                m_model->setFailed(result.message.isEmpty()
-                                       ? fallbackMessage(result.error)
-                                       : result.message);
+            } else if (result.error == model::LoginError::NetworkError){
+                m_model->setFailed(result.message.isEmpty() ? fallbackMessage(result.error) : result.message);
+            }else {
+                m_model->setFailed(result.message.isEmpty() ? fallbackMessage(result.error) : result.message);
             }
         });
 }
@@ -61,8 +61,12 @@ QString AuthController::fallbackMessage(model::LoginError error)
         return QStringLiteral("尝试次数过多，请稍后再试");
     case model::LoginError::NetworkError:
         return QStringLiteral("网络错误，请检查连接");
+    case model::LoginError::ServerRejected:
+        return QStringLiteral("服务端拒绝通信");
+    case model::LoginError::Cancelled:
+        return QStringLiteral("用户取消登陆");
     default:
-        return QStringLiteral("登录失败");
+        return QStringLiteral("未知错误");
     }
 }
 

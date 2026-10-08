@@ -15,6 +15,7 @@ class RegFailed : public QDialog
 public:
     explicit RegFailed(QWidget *parent = nullptr);
     ~RegFailed();
+    void setMessage(const QString& message);
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;

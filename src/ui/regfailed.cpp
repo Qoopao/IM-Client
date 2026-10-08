@@ -25,6 +25,13 @@ RegFailed::RegFailed(QWidget *parent)
     }
 }
 
+void RegFailed::setMessage(const QString& message)
+{
+    ui->reasonLabel->setTextFormat(Qt::PlainText);
+    ui->reasonLabel->setWordWrap(true);
+    ui->reasonLabel->setText(ui->reasonLabel->text()+message);
+}
+
 RegFailed::~RegFailed()
 {
     delete ui;

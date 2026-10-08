@@ -20,9 +20,11 @@ LoginWindow::LoginWindow(QWidget *parent)
     connect(&m_model, &model::AuthModel::statusChanged, this,
             [this](model::AuthModel::Status status) {
                 if (status == model::AuthModel::Status::LoggingIn) {
+                    ui->loginButton->setText(QStringLiteral("登录中…"));
                     ui->loginButton->setEnabled(false);
                     return;
                 }
+                ui->loginButton->setText(QStringLiteral("登录"));
                 ui->loginButton->setEnabled(true);
                 if (status == model::AuthModel::Status::Failed) {
                     LoginFailed *lfw = new LoginFailed(this);
@@ -259,15 +261,19 @@ void LoginWindow::on_registerButton_clicked()
     // 防止多次点击注册按钮
     ui->registerButton->setEnabled(false);
     // 接收注册成功信号
-    connect(r,&Reg::regOk,this,[this](const QString& account){
+    connect(r, &Reg::regOk, this, [this](const QString& account){
+        qDebug() << "[LW1] LoginWindow regOk slot enter";
         ui->account->setText(account);
+        qDebug() << "[LW2] LoginWindow regOk slot exit";
     });
     // 防止跨线程野指针
     connect(r,&Reg::regOk,r,&Reg::close);
     r->setAttribute(Qt::WA_DeleteOnClose);
 
     connect(r, &Reg::destroyed, this, [this](){
+        qDebug() << "[LW3] Reg destroyed";
         ui->registerButton->setEnabled(true);
+        qDebug() << "[LW4] Reg destroyed handler exit";
     });
     r->show();
 }

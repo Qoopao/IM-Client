@@ -52,6 +52,7 @@ void RemoteAuthDao::sendAuth(uint64_t account, const QString& password, Callback
     // 发起连接（先 TLS，再 WebSocket 握手，由QT内部完成）
     genBin(account,password);
     m_socket->open(QUrl(QString::fromUtf8(kWsUrl)));        // 异步的
+    m_timeoutTimer.start(kTimeoutMs);                               // 开始连接计时
 }
 
 
@@ -102,25 +103,33 @@ model::LoginResult RemoteAuthDao::parseResp(const sdkws::SdkWSResp& resp)
 {
     model::LoginResult result;
     const QString code = QString::fromStdString(resp.errorcode());
+    const QString err = QString::fromStdString(resp.errormsg());
 
-    if (code == "0") {
+    if (code == "" && err == "") {
         result.error = model::LoginError::None;
         return result;
-    }
-    if (code == "1") {
+    } else if (code == "INVALID_PARAM") {
         // 后端认证帧字段缺失
         result.error = model::LoginError::InvalidCredentials;
         result.message = QString::fromStdString(resp.errormsg());
         return result;
-    }
-    if (code == "401") {
+    } else if(code == "USER_NOT_FOUND"){
         result.error = model::LoginError::InvalidCredentials;
         result.message = QString::fromStdString(resp.errormsg());
         return result;
+    } else if(code == "WRONG_PASSWORD"){
+        result.error = model::LoginError::InvalidCredentials;
+        result.message = QString::fromStdString(resp.errormsg());
+        return result;
+    } else if(code == "INTERNAL_ERROR"){
+        result.error = model::LoginError::ServerRejected;
+        result.message = QString::fromStdString(resp.errormsg());
+        return result;
+    }else{
+        result.error = model::LoginError::ServerRejected;
+        result.message = QString::fromStdString(resp.errormsg());
+        return result;
     }
-    result.error = model::LoginError::ServerRejected;
-    result.message = QString::fromStdString(resp.errormsg());
-    return result;
 }
 
 void RemoteAuthDao::onTimeout()
@@ -134,7 +143,7 @@ void RemoteAuthDao::onTimeout()
     if (cb) {
         model::LoginResult r;
         r.error = model::LoginError::NetworkError;
-        r.message = QStringLiteral("登录超时");
+        r.message = QStringLiteral("登录超时，请稍后重试");
         cb(r);
     }
 
@@ -157,7 +166,7 @@ void RemoteAuthDao::onConnected()
 {
     qInfo() << "RemoteAuthDao: WebSocket connected";            // TLS握手+websocket握手成功
     m_socket->sendBinaryMessage(QByteArray(m_bin.data(), static_cast<int>(m_bin.size())));
-    m_timeoutTimer.start(kTimeoutMs);           // 开始连接计时
+
 }
 
 void RemoteAuthDao::onDisconnected()
@@ -177,7 +186,7 @@ void RemoteAuthDao::onDisconnected()
 
         model::LoginResult r;
         r.error = model::LoginError::NetworkError;
-        r.message = QStringLiteral("连接已断开");
+        r.message = QStringLiteral("服务器连接失败");
         cb(r);
     }
 
@@ -191,6 +200,18 @@ void RemoteAuthDao::onSslErrors(const QList<QSslError>& errors)
     m_hadSslError = true;
     if (!errors.isEmpty()){
         m_sslErrorString = errors.first().errorString();
+    }
+
+    if (m_callback) {
+        Callback cb = std::move(m_callback);
+        m_callback = nullptr;
+        m_pendingRequestId.clear();
+        m_timeoutTimer.stop();
+
+        model::LoginResult r;
+        r.error = model::LoginError::NetworkError;
+        r.message = QStringLiteral("SSL握手失败");
+        cb(r);
     }
 
     m_socket->close(QWebSocketProtocol::CloseCodeNormal, "client close");

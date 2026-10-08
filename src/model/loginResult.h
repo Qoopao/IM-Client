@@ -12,14 +12,14 @@ enum class LoginError
     InvalidCredentials, // 账号或密码错误（401）
     RateLimited,        // 尝试过多被限流（429）
     NetworkError,       // 断网 / 超时 / 连接失败 / TLS 校验失败
-    ServerRejected,     // 其他服务端业务拒绝
+    ServerRejected,     // 服务端业务拒绝
     Cancelled,          // 用户取消
 };
 
 struct LoginResult
 {
     LoginError error = LoginError::None;
-    QString message;    // 人类可读信息（展示用）
+    QString message;
 };
 
 } // namespace model

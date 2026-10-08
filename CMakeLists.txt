@@ -48,6 +48,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         src/model/loginResult.h
         src/model/authModel.h src/model/authModel.cpp
         src/dao/remoteAuthDao.h src/dao/remoteAuthDao.cpp
+        src/dao/remoteregdao.h src/dao/remoteregdao.cpp
+        src/model/regResult.h
         test/testtls.h test/testtls.cpp
         ${PROTOFILES}
 

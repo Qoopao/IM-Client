@@ -1,12 +1,15 @@
 #include "reg.h"
 #include "ui_reg.h"
 #include "regfailed.h"
+#include "../dao/remoteregdao.h"
+#include <QCloseEvent>
 
 Reg ::Reg(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Reg)
 {
     ui->setupUi(this);
+    m_regDao = new dao::RemoteRegDao(this);
     this->setFocusPolicy(Qt::ClickFocus);
 
     // 设置菜单栏
@@ -115,9 +118,13 @@ Reg ::Reg(QWidget *parent)
 
 }
 
-Reg ::~Reg()
+Reg::~Reg()
 {
+    qDebug() << "[~Reg] enter";
+    m_regDao->cancel();
+    qDebug() << "[~Reg] cancel done";
     delete ui;
+    qDebug() << "[~Reg] exit";
 }
 
 void Reg::on_shutdownButton_clicked()
@@ -143,24 +150,83 @@ bool Reg::meetUserNameStandard(const QString& username){
 bool Reg::meetPasswordStandard(const QString& password){
     auto val = qobject_cast<const QRegularExpressionValidator*>(ui->password->validator());
     if(val){
-        return val->regularExpression().match(password).hasMatch();
+        return val->regularExpression().match(password).hasMatch() && password.contains(QRegularExpression("[A-Za-z]")) && password.contains(QRegularExpression("[0-9]"));
     }
     return false;
 }
 
 void Reg::on_registerButton_clicked()
 {
-    // if(meetPhoneNumberStandard(ui->phoneNumber->text()) && meetUserNameStandard(ui->userName->text()) && meetPasswordStandard(ui->password->text())){
-    //     // 后端返回一个账号
-    //     QString account = "2510564681";
-    //     // 多次点击会出问题，真实情况需要进行修改
-    //     QTimer::singleShot(3000, this, [=](){
-    //         emit regOk(account);
-    //     });
+    if (m_registering)
+        return;
 
-    // }
-    RegFailed * rf = new RegFailed(this);
-    rf->show();
+    const QString phone = ui->phoneNumber->text();
+    const QString nickname = ui->userName->text();
+    const QString password = ui->password->text();
+    if (!meetPhoneNumberStandard(phone)) {
+        ui->phoneNumber->setFocus();
+        showRegistrationError(QStringLiteral("请正确填写手机号。"));
+        return;
+    }
+    if (!meetUserNameStandard(nickname)) {
+        ui->userName->setFocus();
+        showRegistrationError(ui->usernameStandard->text());
+        return;
+    }
+    if (!meetPasswordStandard(password)) {
+        ui->password->setFocus();
+        showRegistrationError(ui->passwordStandard->text());
+        return;
+    }
+
+    setRegistering(true);
+    m_regDao->sendReg(phone, nickname, password, [this](const model::RegResult& result) {
+        qDebug() << "[R1] Reg callback enter, error=" << int(result.error);
+        setRegistering(false);
+        qDebug() << "[R2] Reg callback: setRegistering done";
+        if (result.error == model::RegError::None) {
+            qDebug() << "[R3] Reg callback: success, account=" << result.account;
+            ui->password->clear();
+            qDebug() << "[R4] Reg callback: password cleared, before emit";
+            emit regOk(QString::number(result.account));
+            qDebug() << "[R5] Reg callback: after emit";      // ← 关键
+            return;
+        }
+        qDebug() << "[R6] Reg callback: failure path";
+        showRegistrationError(result.message.isEmpty()
+                                  ? QStringLiteral("注册失败，请稍后重试。") : result.message);
+        qDebug() << "[R7] Reg callback: error shown";
+    });
+}
+
+void Reg::setRegistering(bool registering)
+{
+    m_registering = registering;
+    ui->registerButton->setEnabled(!registering);
+    ui->registerButton->setText(registering ? QStringLiteral("注册中…") : QStringLiteral("立即注册"));
+    ui->phoneNumber->setEnabled(!registering);
+    ui->userName->setEnabled(!registering);
+    ui->password->setEnabled(!registering);
+}
+
+void Reg::showRegistrationError(const QString& message)
+{
+    auto* dialog = new RegFailed(this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->setMessage(message);
+    dialog->setWindowModality(Qt::WindowModal);
+    dialog->show();
+}
+
+void Reg::closeEvent(QCloseEvent* event)
+{
+    qDebug() << "[CE1] Reg::closeEvent enter";
+    m_regDao->cancel();
+    qDebug() << "[CE2] Reg::closeEvent: cancel done";
+    setRegistering(false);
+    qDebug() << "[CE3] Reg::closeEvent: setRegistering done";
+    QWidget::closeEvent(event);
+    qDebug() << "[CE4] Reg::closeEvent exit";
 }
 
 void Reg::mousePressEvent(QMouseEvent *event)
