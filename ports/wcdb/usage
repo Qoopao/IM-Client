@@ -1,0 +1,8 @@
+WCDB provides the C++ API:
+
+    find_package(WCDB CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE WCDB::WCDB)
+
+    #include <WCDB/WCDBCpp.h>
+
+This overlay port supports Windows/MSVC with dynamic library linkage.

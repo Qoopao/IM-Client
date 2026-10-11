@@ -14,6 +14,7 @@
 #include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QStyle>
 #include <QVBoxLayout>
 
 // ==================== ToggleButton ====================
@@ -85,6 +86,7 @@ DropdownPopup::DropdownPopup(QWidget* parent) : QFrame(parent)
     // 往这个布局加入滚动区域
     m_itemScrollArea = new QScrollArea(m_body);
     m_itemScrollArea->viewport()->setStyleSheet("background:transparent;");
+    m_itemScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     m_bodyLayout->addWidget(m_itemScrollArea);
 
     // ---------------树到这里快结束了----------------------
@@ -94,6 +96,7 @@ DropdownPopup::DropdownPopup(QWidget* parent) : QFrame(parent)
     m_itemLayout = new QVBoxLayout(m_itemWidget);
     m_itemLayout->setContentsMargins(4, 3, 4, 3);
     m_itemLayout->setSpacing(1);
+    m_itemLayout->setAlignment(Qt::AlignTop);
     m_itemScrollArea->setWidgetResizable(true);
     m_itemScrollArea->setWidget(m_itemWidget);      // 交给ScrollArea
 
@@ -103,6 +106,11 @@ void DropdownPopup::addItem(const QString& avatarPath, const QString& text)
 {
     auto* item = new PopupItem(avatarPath, text, m_itemWidget);
     connect(item, &PopupItem::clicked, this, &DropdownPopup::itemClicked);
+    connect(item, &PopupItem::removeRequested, this, [this, item]() {
+        m_itemLayout->removeWidget(item);
+        item->hide();
+        item->deleteLater();
+    });
     m_itemLayout->addWidget(item);
 }
 
@@ -187,6 +195,24 @@ PopupItem::PopupItem(const QString& avatarPath, const QString& text, QWidget* pa
     lay->addWidget(m_avatar);
     lay->addWidget(m_label);
     lay->addStretch();
+
+    auto* removeButton = new QPushButton(this);
+    removeButton->setObjectName("removeAccountButton");
+    removeButton->setFixedSize(20, 20);
+    removeButton->setIcon(style()->standardIcon(QStyle::SP_TitleBarCloseButton));
+    removeButton->setIconSize(QSize(14, 14));
+    removeButton->setFocusPolicy(Qt::NoFocus);
+    removeButton->setStyleSheet(R"(QPushButton{
+        border:none;
+        padding:0px;
+        background:transparent;
+        border-radius:5px;
+    }
+    QPushButton:hover{
+        background:#1A000000;
+    })");
+    lay->addWidget(removeButton);
+    connect(removeButton, &QPushButton::clicked, this, &PopupItem::removeRequested);
 }
 
 void PopupItem::enterEvent(QEnterEvent*) { m_hover = true; update(); }

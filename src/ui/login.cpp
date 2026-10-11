@@ -4,11 +4,15 @@
 #include <QPixmap>
 #include <QStyle>
 #include <QDebug>
-#include <QMessageBox>  // [MVC-REFACTOR] 登录结果提示框
+#include <WCDB/WCDBCpp.h>
 #include <windows.h>
+#include <QMessageBox>
 #include "accountDropdown.h"
 #include "reg.h"
 #include "loginFailed.h"
+#include <QDir>
+#include <QStandardPaths>
+
 
 LoginWindow::LoginWindow(QWidget *parent)
     : QMainWindow(parent)

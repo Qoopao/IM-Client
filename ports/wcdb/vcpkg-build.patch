@@ -1,0 +1,227 @@
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -24,8 +24,10 @@
+ set(CMAKE_C_VISIBILITY_PRESET hidden)
+ 
+ # Add debug info
+-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
++if(NOT MSVC)
++    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
++    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
++endif()
+ 
+ set(WCDB_SRC_DIR ${CMAKE_CURRENT_LIST_DIR})
+ 
+@@ -333,22 +335,6 @@
+         #add_definitions(-DWCDB_DLL -DWCDB_BUILD_DLL)
+     endif ()
+     
+-    if (BUILD_SHARED_LIBS)
+-        target_compile_options(sqlcipher PRIVATE 
+-            $<$<CONFIG:>:/MD> #---------|
+-            $<$<CONFIG:Debug>:/MDd> #---|-- Dynamic link the runtime libraries
+-            $<$<CONFIG:Release>:/MD> #--|
+-            $<$<CONFIG:RelWithDebInfo>:/MD>
+-        )
+-    else ()
+-        target_compile_options(sqlcipher PRIVATE 
+-            $<$<CONFIG:>:/MT> #---------|
+-            $<$<CONFIG:Debug>:/MTd> #---|-- Statically link the runtime libraries
+-            $<$<CONFIG:Release>:/MT> #--|
+-            $<$<CONFIG:RelWithDebInfo>:/MT>
+-        )
+-    endif()
+-    
+     add_compile_options(/MP)
+     add_compile_options(/wd4068)  # Disable unknown pragma warnings
+     add_compile_options(/wd4996)
+@@ -398,10 +384,11 @@
+ 
+ add_library(${TARGET_NAME} ${WCDB_COMMON_SRC})
+ target_link_libraries(${TARGET_NAME} PRIVATE sqlcipher)
+-target_include_directories(${TARGET_NAME} PUBLIC ${WCDB_COMMON_INCLUDES})
++target_include_directories(${TARGET_NAME} PRIVATE ${WCDB_COMMON_INCLUDES})
+ 
+ if (WCDB_ZSTD)
+-    include(zstd.cmake)
++    find_package(zstd CONFIG REQUIRED)
++    add_library(zstd ALIAS zstd::libzstd)
+     target_link_libraries(${TARGET_NAME} PRIVATE zstd)
+     target_compile_definitions(${TARGET_NAME} PRIVATE WCDB_ZSTD=1)
+ endif ()
+@@ -414,7 +401,7 @@
+ 
+ if (WCDB_CPP)
+     target_sources(${TARGET_NAME} PRIVATE ${WCDB_CPP_SRC})
+-    target_include_directories(${TARGET_NAME} PUBLIC ${WCDB_CPP_INCLUDES})
++    target_include_directories(${TARGET_NAME} PRIVATE ${WCDB_CPP_INCLUDES})
+ endif ()
+ 
+ if (WCDB_BRIDGE)
+@@ -422,89 +409,10 @@
+     target_include_directories(${TARGET_NAME} PUBLIC ${WCDB_BRIDGE_INCLUDES})
+ endif ()
+ 
+-if (WCONAN_MODE)
+-    wconan_get_libraries_dir(
+-            WCONAN_LIB_DIR
+-            wconan_libs
+-    )
+-    target_include_directories(sqlcipher PUBLIC ${WCONAN_LIB_DIR}/include)
+-    target_link_directories(sqlcipher PUBLIC ${WCONAN_LIB_DIR}/libs)
+-else ()
+-    if (BUILD_SHARED_LIBS)
+-        if(ANDROID)
+-            target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/android_old/${CMAKE_ANDROID_ARCH}/include)
+-            target_link_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/android_old/${CMAKE_ANDROID_ARCH}/lib)
+-            target_include_directories(sqlcipher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/android_old/${CMAKE_ANDROID_ARCH}/include)
+-            target_link_directories(sqlcipher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/android_old/${CMAKE_ANDROID_ARCH}/lib)
+-        elseif(LINUX)
+-            target_include_directories(sqlcipher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/include)
+-            target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/include)
+-            target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/zlib/include)
+-            if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+-                target_link_directories(sqlcipher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/linux/x86_64)
+-                target_link_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/linux/x86_64)
+-                target_link_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/zlib/linux/x86_64)
+-            elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64")
+-                target_link_directories(sqlcipher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/linux/arm64)
+-                target_link_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/linux/arm64)
+-                target_link_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/zlib/linux/arm64)
+-            endif()
+-        elseif(WIN32)
+-            target_include_directories(sqlcipher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/include)
+-            target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/include)
+-            target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/zlib/include)
+-            if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+-                target_link_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/zlib/windows/win64)
+-                target_link_directories(sqlcipher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/windows/win64)
+-                target_link_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/windows/win64)
+-            else ()
+-                target_link_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/zlib/windows/win32)
+-                target_link_directories(sqlcipher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/windows/win32)
+-                target_link_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/windows/win32)
+-            endif()
+-        elseif(OHOS)
+-            target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/include)
+-            target_include_directories(sqlcipher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/include)
+-            if (${OHOS_ARCH} STREQUAL "arm64-v8a")
+-                target_link_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/ohos/arm64-v8a)
+-                target_link_directories(sqlcipher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/ohos/arm64-v8a)
+-            elseif(${OHOS_ARCH} STREQUAL "x86_64")
+-                target_link_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/ohos/x86_64)
+-                target_link_directories(sqlcipher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/ohos/x86_64)
+-            endif()
+-        endif()
+-    else ()
+-        if(ANDROID)
+-            target_include_directories(sqlcipher PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/android_old/${CMAKE_ANDROID_ARCH}/include)
+-            target_link_directories(sqlcipher PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/android_old/${CMAKE_ANDROID_ARCH}/lib)
+-        elseif(LINUX)
+-            target_include_directories(sqlcipher PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/include)
+-            target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/zlib/include)
+-            target_link_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/zlib/linux/arm64)
+-            target_link_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/zlib/linux/x86_64)
+-            target_link_directories(sqlcipher PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/linux/arm64)
+-            target_link_directories(sqlcipher PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/linux/x86_64)
+-        elseif(WIN32)
+-            target_include_directories(sqlcipher PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/include)
+-            target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/zlib/include)
+-            if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+-                target_link_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/zlib/windows/win64)
+-                target_link_directories(sqlcipher PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/windows/win64)
+-            else ()
+-                target_link_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/zlib/windows/win32)
+-                target_link_directories(sqlcipher PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/windows/win32)
+-            endif()
+-        elseif(OHOS)
+-            target_include_directories(sqlcipher PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/include)
+-            if (${OHOS_ARCH} STREQUAL "arm64-v8a")
+-                target_link_directories(sqlcipher PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/ohos/arm64-v8a)
+-            elseif(${OHOS_ARCH} STREQUAL "x86_64")
+-                target_link_directories(sqlcipher PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/ohos/x86_64)
+-            endif()
+-        endif()
+-    endif()
+-endif ()
+-
++find_package(OpenSSL REQUIRED)
++find_package(ZLIB REQUIRED)
++target_link_libraries(sqlcipher PRIVATE OpenSSL::Crypto)
++target_link_libraries(${TARGET_NAME} PRIVATE OpenSSL::Crypto ZLIB::ZLIB)
+ if (ANDROID)
+     message(STATUS "---- BUILD FOR ANDROID ----")
+     find_library(z-lib z)
+@@ -564,11 +472,29 @@
+             ${LINK_LIBRARIES}
+             Crypt32
+             Ws2_32)
+-    if (BUILD_SHARED_LIBS)
+-        target_link_libraries(${TARGET_NAME} PRIVATE libcrypto zlibstatic)
+-    else()
+-        target_link_libraries(${TARGET_NAME} PUBLIC libcrypto zlibstatic)
+-    endif()
++
+ else ()
+     message(FATAL_ERROR "Unsupported platform!")
+ endif ()
++
++# Install a relocatable CMake package for vcpkg consumers.
++target_include_directories(${TARGET_NAME} PUBLIC
++    $<BUILD_INTERFACE:${EXPORT_PUBLIC_HEADERS_PATH}>
++    $<INSTALL_INTERFACE:include>)
++target_compile_definitions(${TARGET_NAME} INTERFACE WCDB_DLL)
++include(GNUInstallDirs)
++include(CMakePackageConfigHelpers)
++install(TARGETS ${TARGET_NAME} EXPORT WCDBTargets
++    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
++    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
++install(DIRECTORY "${EXPORT_PUBLIC_HEADERS_PATH}/WCDB"
++    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
++install(EXPORT WCDBTargets NAMESPACE WCDB:: DESTINATION share/wcdb)
++configure_package_config_file("${CMAKE_CURRENT_SOURCE_DIR}/WCDBConfig.cmake.in"
++    "${CMAKE_CURRENT_BINARY_DIR}/WCDBConfig.cmake"
++    INSTALL_DESTINATION share/wcdb)
++write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/WCDBConfigVersion.cmake"
++    VERSION 2.1.16 COMPATIBILITY SameMajorVersion)
++install(FILES "${CMAKE_CURRENT_BINARY_DIR}/WCDBConfig.cmake"
++    "${CMAKE_CURRENT_BINARY_DIR}/WCDBConfigVersion.cmake" DESTINATION share/wcdb)
+--- a/src/common/core/compression/CompressionCenter.cpp
++++ b/src/common/core/compression/CompressionCenter.cpp
+@@ -31,8 +31,8 @@
+ #include <string.h>
+ #if defined(WCDB_ZSTD) && WCDB_ZSTD
+ #define ZDICT_STATIC_LINKING_ONLY 1
+-#include <zstd/zdict.h>
+-#include <zstd/zstd.h>
++#include <zdict.h>
++#include <zstd.h>
+ #endif
+ 
+ namespace WCDB {
+--- a/src/common/core/compression/ZSTDContext.cpp
++++ b/src/common/core/compression/ZSTDContext.cpp
+@@ -26,7 +26,7 @@
+ #include <memory>
+ #include <stdlib.h>
+ #if defined(WCDB_ZSTD) && WCDB_ZSTD
+-#include <zstd/zstd.h>
++#include <zstd.h>
+ #endif
+ 
+ namespace WCDB {
+--- a/src/common/core/compression/ZSTDDict.cpp
++++ b/src/common/core/compression/ZSTDDict.cpp
+@@ -29,8 +29,8 @@
+ #include <stdlib.h>
+ #if defined(WCDB_ZSTD) && WCDB_ZSTD
+ #define ZSTD_STATIC_LINKING_ONLY
+-#include <zstd/zdict.h>
+-#include <zstd/zstd.h>
++#include <zdict.h>
++#include <zstd.h>
+ #endif
+ 
+ namespace WCDB {

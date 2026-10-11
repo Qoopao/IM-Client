@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.16)
 set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
     CACHE STRING "Vcpkg toolchain file")
 
+# Also migrate existing build directories away from their cached install path.
+set(VCPKG_INSTALLED_DIR "${CMAKE_SOURCE_DIR}/vcpkg_installed"
+    CACHE PATH "Project-local vcpkg dependency installation directory" FORCE)
+
 project(IM-client VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
@@ -12,13 +16,12 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/wcdb/include)
-
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt6 REQUIRED COMPONENTS Core Network WebSockets)
 find_package(protobuf CONFIG REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
+find_package(WCDB CONFIG REQUIRED)
 
 if(MSVC)
     add_compile_options(/utf-8)
@@ -32,7 +35,6 @@ set(PROJECT_SOURCES
 )
 
 file(GLOB_RECURSE PROTO_FILES "src/proto/*.*")
-# file(GLOB_RECURSE WCDB_HEADERS "third_party/WCDB/include/*.*")
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(IM-client
@@ -59,7 +61,6 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         src/service/regService.h src/service/regService.cpp
         test/testtls.h test/testtls.cpp
         ${PROTO_FILES}
-        # ${WCDB_HEADERS}
 
 
 
@@ -82,6 +83,8 @@ else()
     endif()
 endif()
 
+target_compile_definitions(IM-client PRIVATE NOMINMAX)
+
 target_link_libraries(IM-client PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt6::Network
@@ -89,16 +92,8 @@ target_link_libraries(IM-client PRIVATE
     Qt6::WebSockets
     protobuf::libprotobuf
     gRPC::grpc++
-    # ${CMAKE_CURRENT_SOURCE_DIR}/third_party/wcdb/lib/WCDB.lib
-    # ${CMAKE_CURRENT_SOURCE_DIR}/third_party/wcdb/lib/sqlcipher.lib
-    # ${CMAKE_CURRENT_SOURCE_DIR}/third_party/wcdb/lib/zstd.lib
+    WCDB::WCDB
 )
-
-# add_custom_command(TARGET IM-client POST_BUILD
-#     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/wcdb/dll/WCDB.dll"
-#     $<TARGET_FILE_DIR:IM-client>
-# )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

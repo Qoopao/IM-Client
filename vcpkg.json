@@ -1,6 +1,7 @@
 {
   "dependencies": [
     "grpc",
-    "protobuf"
+    "protobuf",
+    "wcdb"
   ]
 }

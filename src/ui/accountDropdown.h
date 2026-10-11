@@ -62,6 +62,7 @@ public:
 
 signals:
     void clicked(const QString& text);
+    void removeRequested();
 
 protected:
     void enterEvent(QEnterEvent* event) override;
