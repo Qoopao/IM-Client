@@ -7,8 +7,8 @@
 #include <functional>
 #include <string>
 
-#include "../model/regResult.h"
-#include "../proto/sdkws.pb.h"
+#include "../../model/regResult.h"
+#include "../../proto/sdkws.pb.h"
 
 namespace dao {
 

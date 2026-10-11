@@ -106,10 +106,8 @@ void DropdownPopup::addItem(const QString& avatarPath, const QString& text)
 {
     auto* item = new PopupItem(avatarPath, text, m_itemWidget);
     connect(item, &PopupItem::clicked, this, &DropdownPopup::itemClicked);
-    connect(item, &PopupItem::removeRequested, this, [this, item]() {
-        m_itemLayout->removeWidget(item);
-        item->hide();
-        item->deleteLater();
+    connect(item, &PopupItem::removeRequested, this, [this, text]() {
+        emit itemRemoveRequested(text);
     });
     m_itemLayout->addWidget(item);
 }
@@ -196,6 +194,7 @@ PopupItem::PopupItem(const QString& avatarPath, const QString& text, QWidget* pa
     lay->addWidget(m_label);
     lay->addStretch();
 
+    // 历史账号删除按钮
     auto* removeButton = new QPushButton(this);
     removeButton->setObjectName("removeAccountButton");
     removeButton->setFixedSize(20, 20);

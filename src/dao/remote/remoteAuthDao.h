@@ -7,8 +7,8 @@
 #include <functional>
 #include <cstdint>
 
-#include "../model/loginResult.h"
-#include "../proto/sdkws.pb.h"
+#include "../../model/loginResult.h"
+#include "../../proto/sdkws.pb.h"
 
 
 namespace dao {

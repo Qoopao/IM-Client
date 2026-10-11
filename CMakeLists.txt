@@ -52,13 +52,21 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         src/controller/authController.cpp
         src/model/loginResult.h
         src/model/authModel.h src/model/authModel.cpp
-        src/dao/remoteAuthDao.h src/dao/remoteAuthDao.cpp
-        src/dao/remoteRegDao.h src/dao/remoteRegDao.cpp
+        src/dao/remote/remoteAuthDao.h src/dao/remote/remoteAuthDao.cpp
+        src/dao/remote/remoteRegDao.h src/dao/remote/remoteRegDao.cpp
         src/model/regResult.h
         src/model/regModel.h
         src/controller/regController.h src/controller/regController.cpp
         src/service/authService.h src/service/authService.cpp
         src/service/regService.h src/service/regService.cpp
+        src/model/accountHistory.h
+        src/dao/interfaces/accountHistoryDao.h
+        src/dao/local/wcdb/wcdbAccountHistoryDao.h
+        src/dao/local/wcdb/wcdbAccountHistoryDao.cpp
+        src/storage/wcdb/wcdbHeaders.h
+        src/storage/wcdb/localDatabase.h src/storage/wcdb/localDatabase.cpp
+        src/storage/wcdb/accountHistoryRow.h src/storage/wcdb/accountHistoryRow.cpp
+        src/service/accountHistoryService.h src/service/accountHistoryService.cpp
         test/testtls.h test/testtls.cpp
         ${PROTO_FILES}
 
@@ -117,4 +125,18 @@ install(TARGETS IM-client
 )
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(IM-client)
+endif()
+
+option(IM_CLIENT_BUILD_HISTORY_TESTS "Build local account history tests" OFF)
+if(IM_CLIENT_BUILD_HISTORY_TESTS)
+    enable_testing()
+    add_executable(account-history-test
+        test/accountHistoryTest.cpp
+        src/storage/wcdb/localDatabase.cpp
+        src/storage/wcdb/accountHistoryRow.cpp
+        src/dao/local/wcdb/wcdbAccountHistoryDao.cpp
+    )
+    target_compile_definitions(account-history-test PRIVATE NOMINMAX)
+    target_link_libraries(account-history-test PRIVATE Qt6::Core WCDB::WCDB)
+    add_test(NAME account-history COMMAND account-history-test)
 endif()

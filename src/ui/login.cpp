@@ -4,7 +4,6 @@
 #include <QPixmap>
 #include <QStyle>
 #include <QDebug>
-#include <WCDB/WCDBCpp.h>
 #include <windows.h>
 #include <QMessageBox>
 #include "accountDropdown.h"
@@ -14,12 +13,14 @@
 #include <QStandardPaths>
 
 
-LoginWindow::LoginWindow(QWidget *parent)
+LoginWindow::LoginWindow(service::AccountHistoryService& history, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::LoginWindow)
+    , m_history(history)
 {
     ui->setupUi(this);
 
+    // 登陆状态改变的槽函数
     connect(&m_controller, &controller::AuthController::stateChanged, this,
             [this](const model::AuthModel& state) {
                 const auto status = state.status;
@@ -36,6 +37,11 @@ LoginWindow::LoginWindow(QWidget *parent)
                     lfw->exec();
                     lfw->setAttribute(Qt::WA_DeleteOnClose);
                 } else if (status == model::AuthModel::Status::Success) {
+                    QString error;
+                    if (m_history.recordSuccessfulLogin(state.account, error))
+                        refreshAccountHistory();
+                    else
+                        QMessageBox::warning(this, QStringLiteral("历史账号保存失败"), error);
                     QMessageBox::information(this, QStringLiteral("登录成功"), QStringLiteral("欢迎，%1").arg(state.account));
                 }
             });
@@ -118,12 +124,16 @@ LoginWindow::LoginWindow(QWidget *parent)
     auto* dropdownFrame = new DropdownPopup(this);
     ui->InfoLayout->insertWidget(2, dropdownFrame, 0, Qt::AlignHCenter);
 
-    dropdownFrame->addItem("", "1000000001");
-    dropdownFrame->addItem("", "251051");
-    dropdownFrame->addItem("", "25162");
-    dropdownFrame->addItem("", "251051");
-    dropdownFrame->addItem("", "25162");
-    dropdownFrame->addItem("", "251051");
+    m_dropdown = dropdownFrame;
+    refreshAccountHistory();
+    connect(dropdownFrame, &DropdownPopup::itemRemoveRequested, this,
+            [this](const QString& account) {
+                QString error;
+                if (m_history.removeAccount(account, error))
+                    refreshAccountHistory();
+                else
+                    QMessageBox::warning(this, QStringLiteral("历史账号删除失败"), error);
+            }, Qt::QueuedConnection);
 
     // 展开即hide 密码框、复选框，dropdownFrame 高度精确等于被隐藏区域的实际高度
     // 这样 InfoLayout + spacer_3 + OptLayout + spacer_4 总高不变，登录按钮及下方纹丝不动
@@ -290,3 +300,17 @@ void LoginWindow::on_loginButton_clicked()
 
 }
 
+
+void LoginWindow::refreshAccountHistory()
+{
+    QList<model::AccountHistory> accounts;
+    QString error;
+    if (!m_history.loadAccounts(accounts, error)) {
+        QMessageBox::warning(this, QStringLiteral("历史账号读取失败"), error);
+        return;
+    }
+    m_dropdown->clearItems();
+    for (const auto& account : std::as_const(accounts)){
+        m_dropdown->addItem(QString(), account.account);
+    }
+}

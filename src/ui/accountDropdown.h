@@ -42,6 +42,7 @@ public slots:
 
 signals:
     void itemClicked(const QString& text);
+    void itemRemoveRequested(const QString& account);
 
 private:
     QVBoxLayout* m_rootLayout = nullptr;

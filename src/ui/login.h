@@ -7,6 +7,8 @@
 #include <QRegularExpressionValidator>
 #include <QPoint>
 #include "../controller/authController.h"
+#include "../service/accountHistoryService.h"
+class DropdownPopup;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -19,7 +21,7 @@ class LoginWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit LoginWindow(QWidget *parent = nullptr);
+    explicit LoginWindow(service::AccountHistoryService& history, QWidget *parent = nullptr);
     ~LoginWindow() override;
 
     bool isCapsLockOn();
@@ -41,7 +43,10 @@ private slots:
     void on_loginButton_clicked();
 
 private:
+    void refreshAccountHistory();
     Ui::LoginWindow *ui;
+    service::AccountHistoryService& m_history;
+    DropdownPopup* m_dropdown = nullptr;
 
     // 自定义菜单窗口拖拽
     QPoint m_dragStartPos;

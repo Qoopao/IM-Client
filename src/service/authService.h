@@ -2,7 +2,7 @@
 #define AUTH_SERVICE_H
 
 #include <QObject>
-#include "../dao/remoteAuthDao.h"
+#include "../dao/remote/remoteAuthDao.h"
 #include "../model/authModel.h"
 
 namespace service {

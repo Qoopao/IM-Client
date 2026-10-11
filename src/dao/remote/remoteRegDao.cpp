@@ -1,5 +1,5 @@
 #include "remoteRegDao.h"
-#include "../proto/apeauth.pb.h"
+#include "../../proto/apeauth.pb.h"
 
 #include <QCoreApplication>
 #include <QDir>

@@ -1,7 +1,7 @@
 #ifndef REG_SERVICE_H
 #define REG_SERVICE_H
 
-#include "../dao/remoteRegDao.h"
+#include "../dao/remote/remoteRegDao.h"
 #include "../model/regModel.h"
 
 namespace service {
