@@ -1,64 +1,115 @@
 #include "mainIM.h"
+#include "ui_mainIM.h"
 #include <QLabel>
 #include <QListWidget>
 #include <QTextBrowser>
 #include <QTextEdit>
 #include <QLineEdit>
 #include <QPushButton>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
 #include <QSplitter>
+#include <QStackedWidget>
+#include <QTreeWidget>
 #include <QDateTime>
 #include <QEvent>
 #include <QMap>
 #include <QSignalBlocker>
 #include <QScrollBar>
+#include <QMouseEvent>
+#include <QWindow>
+#include <QIcon>
+#include <QCloseEvent>
+#include <QDebug>
 #include <algorithm>
 
 mainIM::mainIM(service::ChatService& chat, QWidget* parent)
     : QWidget(parent)
+    , ui(new Ui::mainIM)
     , m_chat(chat)
 {
-    resize(1000, 700);
-    setMinimumSize(720, 500);
-    auto* root = new QVBoxLayout(this);
-    auto* header = new QHBoxLayout;
-    m_status = new QLabel;
-    header->addWidget(m_status, 1);
-    auto* logout = new QPushButton(QStringLiteral("退出登录"));
-    header->addWidget(logout);
-    root->addLayout(header);
-    m_error = new QLabel;
-    m_error->setWordWrap(true);
-    m_error->setStyleSheet("color:#b42318;");
-    root->addWidget(m_error);
-    auto* start = new QHBoxLayout;
-    m_peer = new QLineEdit;
-    m_peer->setPlaceholderText(QStringLiteral("输入对方账号"));
-    auto* open = new QPushButton(QStringLiteral("发起聊天"));
-    start->addWidget(m_peer);
-    start->addWidget(open);
-    root->addLayout(start);
-    auto* splitter = new QSplitter;
-    m_conversations = new QListWidget;
-    splitter->addWidget(m_conversations);
-    auto* right = new QWidget;
-    auto* layout = new QVBoxLayout(right);
-    m_title = new QLabel(QStringLiteral("选择会话或输入账号发起聊天"));
-    layout->addWidget(m_title);
-    m_history = new QTextBrowser;
-    m_history->setOpenExternalLinks(false);
-    layout->addWidget(m_history, 1);
-    m_input = new QTextEdit;
-    m_input->setPlaceholderText(QStringLiteral("输入文字消息"));
-    m_input->setMaximumHeight(130);
-    layout->addWidget(m_input);
-    m_send = new QPushButton(QStringLiteral("发送"));
-    layout->addWidget(m_send, 0, Qt::AlignRight);
-    splitter->addWidget(right);
-    splitter->setStretchFactor(1, 1);
-    splitter->setSizes({240, 760});
-    root->addWidget(splitter, 1);
+    ui->setupUi(this);
+    setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::WindowSystemMenuHint
+                   | Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint);
+    setWindowIcon(QIcon(":/jpg/ape"));
+    installEventFilter(this);
+    ui->headerWidget->installEventFilter(this);
+    ui->statusLabel->installEventFilter(this);
+    ui->minimizeButton->setToolTip(QStringLiteral("最小化"));
+    ui->maximizeButton->setToolTip(QStringLiteral("最大化 / 还原"));
+    ui->shutdownButton->setToolTip(QStringLiteral("关闭"));
+    ui->listStack->setCurrentWidget(ui->conversationPanel);
+
+    m_status = ui->statusLabel;
+    m_conversations = ui->conversationList;
+    m_history = ui->historyBrowser;
+    m_input = ui->messageEdit;
+    m_peer = ui->peerEdit;
+    m_send = ui->sendButton;
+
+    auto* open = ui->openChatButton;
+    ui->chatSplitter->setStretchFactor(0, 1);
+    ui->chatSplitter->setStretchFactor(1, 4);
+    ui->chatSplitter->setSizes({200, 800});
+    ui->contactsTree->collapseAll();
+    ui->contactsTree->viewport()->installEventFilter(this);
+    for (int i = 0; i < ui->contactsTree->topLevelItemCount(); ++i) {
+        auto* group = ui->contactsTree->topLevelItem(i);
+        group->setFlags(Qt::ItemIsEnabled);
+        for (int j = 0; j < group->childCount(); ++j)
+            group->child(j)->setFlags(Qt::NoItemFlags);
+    }
+
+    connect(ui->minimizeButton, &QPushButton::clicked, this, &QWidget::showMinimized);
+    connect(ui->maximizeButton, &QPushButton::clicked, this, [this] {
+        if (isMaximized())
+            showNormal();
+        else
+            showMaximized();
+    });
+    connect(ui->shutdownButton, &QPushButton::clicked, this, &QWidget::close);
+
+    connect(ui->conversationButton, &QPushButton::clicked, this, [this] {
+        ui->listStack->setCurrentWidget(ui->conversationPanel);
+    });
+    connect(ui->contactsButton, &QPushButton::clicked, this, [this] {
+        ui->listStack->setCurrentWidget(ui->contactsPanel);
+    });
+    connect(ui->listStack, &QStackedWidget::currentChanged, this, [this](int) {
+        updateNavigation();
+    });
+
+    connect(ui->contactsSearchEdit, &QLineEdit::textChanged, this,
+            [this, expandedGroups = QMap<QTreeWidgetItem*, bool>()](const QString& text) mutable {
+                const auto keyword = text.trimmed();
+                for (int i = 0; i < ui->contactsTree->topLevelItemCount(); ++i) {
+                    auto* group = ui->contactsTree->topLevelItem(i);
+                    if (!keyword.isEmpty() && !expandedGroups.contains(group))
+                        expandedGroups.insert(group, group->isExpanded());
+                    bool hasMatch = false;
+                    const bool groupMatches = group->text(0).contains(keyword, Qt::CaseInsensitive);
+                    for (int j = 0; j < group->childCount(); ++j) {
+                        auto* item = group->child(j);
+                        const bool matches = keyword.isEmpty() || groupMatches
+                            || item->text(0).contains(keyword, Qt::CaseInsensitive);
+                        item->setHidden(!matches);
+                        hasMatch = hasMatch || matches;
+                    }
+                    group->setHidden(!keyword.isEmpty() && !hasMatch);
+                    if (!keyword.isEmpty() && hasMatch)
+                        group->setExpanded(true);
+                    else if (keyword.isEmpty() && expandedGroups.contains(group))
+                        group->setExpanded(expandedGroups.value(group));
+                }
+                if (keyword.isEmpty())
+                    expandedGroups.clear();
+            });
+
+    connect(ui->friendRequestsButton, &QPushButton::toggled, this, [this](bool) {
+        updateNavigation();
+    });
+    connect(ui->contactsTree, &QTreeWidget::itemClicked, this, [this](QTreeWidgetItem*, int) {
+        ui->friendRequestsButton->setChecked(false);
+    });
+
     connect(open, &QPushButton::clicked, this, [this] { m_chat.openPeer(m_peer->text()); });
     connect(m_peer, &QLineEdit::returnPressed, open, &QPushButton::click);
     connect(m_conversations, &QListWidget::currentItemChanged, this, [this](QListWidgetItem* item) {
@@ -66,29 +117,107 @@ mainIM::mainIM(service::ChatService& chat, QWidget* parent)
             m_chat.openPeer(item->data(Qt::UserRole).toString());
     });
     connect(m_send, &QPushButton::clicked, this, [this] {
-        m_error->clear();
         if (m_chat.sendText(m_input->toPlainText()))
             m_input->clear();
     });
-    connect(logout, &QPushButton::clicked, this, &mainIM::logoutRequested);
     connect(&chat, &service::ChatService::changed, this, &mainIM::refresh);
     connect(&chat, &service::ChatService::errorOccurred, this,
-            [this](const QString& error) { m_error->setText(error); });
+            [this](const QString& error) {
+                qWarning().noquote() << "ChatService:" << error;
+            });
+    updateNavigation();
     refresh();
 }
+
+mainIM::~mainIM()
+{
+    delete ui;
+}
+
+void mainIM::updateNavigation()
+{
+    const bool viewingConversation = ui->listStack->currentWidget() == ui->conversationPanel;
+    ui->conversationButton->setChecked(viewingConversation);
+    ui->contactsButton->setChecked(!viewingConversation);
+    const bool hasConversation = !m_chat.currentPeer().isEmpty();
+    if (viewingConversation)
+        ui->detailStack->setCurrentWidget(hasConversation ? ui->chatWidget : ui->emptyChatWidget);
+    else if (ui->friendRequestsButton->isChecked())
+        ui->detailStack->setCurrentWidget(ui->friendRequestsPage);
+    else
+        ui->detailStack->setCurrentWidget(ui->contactInfoWidget);
+    m_chat.setViewing(isActiveWindow() && viewingConversation && hasConversation);
+}
+
+bool mainIM::eventFilter(QObject* watched, QEvent* event)
+{
+    if (watched == ui->contactsTree->viewport()
+        && (event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseButtonDblClick)) {
+        auto* mouseEvent = static_cast<QMouseEvent*>(event);
+        auto* item = ui->contactsTree->itemAt(mouseEvent->position().toPoint());
+        if (mouseEvent->button() == Qt::LeftButton && item && !item->parent() && item->childCount() > 0) {
+            if (event->type() == QEvent::MouseButtonPress) {
+                ui->friendRequestsButton->setChecked(false);
+                item->setExpanded(!item->isExpanded());
+                ui->contactsTree->setFocus();
+            }
+            return true;
+        }
+    }
+    if (watched == this && event->type() == QEvent::MouseButtonPress && !isMaximized()) {
+        auto* mouseEvent = static_cast<QMouseEvent*>(event);
+        if (mouseEvent->button() == Qt::LeftButton && windowHandle()) {
+            const auto pos = mouseEvent->position().toPoint();
+            Qt::Edges edges;
+            if (pos.x() < 6)
+                edges |= Qt::LeftEdge;
+            if (pos.x() >= width() - 6)
+                edges |= Qt::RightEdge;
+            if (pos.y() < 6)
+                edges |= Qt::TopEdge;
+            if (pos.y() >= height() - 6)
+                edges |= Qt::BottomEdge;
+            if (edges)
+                return windowHandle()->startSystemResize(edges);
+        }
+    }
+    if (watched == ui->headerWidget || watched == ui->statusLabel) {
+        if (event->type() == QEvent::MouseButtonPress) {
+            auto* mouseEvent = static_cast<QMouseEvent*>(event);
+            if (mouseEvent->button() == Qt::LeftButton && windowHandle())
+                return windowHandle()->startSystemMove();
+        } else if (event->type() == QEvent::MouseButtonDblClick) {
+            auto* mouseEvent = static_cast<QMouseEvent*>(event);
+            if (mouseEvent->button() == Qt::LeftButton) {
+                ui->maximizeButton->click();
+                return true;
+            }
+        }
+    }
+    return QWidget::eventFilter(watched, event);
+}
+
+void mainIM::closeEvent(QCloseEvent* event)
+{
+    QWidget::closeEvent(event);
+    if (event->isAccepted())
+        emit closing();
+}
+
 void mainIM::changeEvent(QEvent* event)
 {
     QWidget::changeEvent(event);
     if (event->type() == QEvent::ActivationChange)
-        m_chat.setViewing(isActiveWindow());
+        m_chat.setViewing(isActiveWindow() && ui->listStack->currentWidget() == ui->conversationPanel
+                          && !m_chat.currentPeer().isEmpty());
 }
+
 void mainIM::refresh()
 {
     setWindowTitle(QStringLiteral("IM — %1").arg(m_chat.account()));
     m_status->setText(m_chat.status());
     const auto peer = m_chat.currentPeer();
-    m_title->setText(peer.isEmpty() ? QStringLiteral("选择会话或输入账号发起聊天")
-                                    : QStringLiteral("与 %1 聊天").arg(peer));
+    ui->chatPeerLabel->setText(peer.isEmpty() ? QStringLiteral("请选择会话") : peer);
     m_send->setEnabled(!peer.isEmpty());
     m_input->setEnabled(!peer.isEmpty());
     struct Summary

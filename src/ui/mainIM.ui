@@ -6,60 +6,823 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>710</width>
-    <height>519</height>
+    <width>1000</width>
+    <height>700</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>Form</string>
+  <property name="minimumSize">
+   <size>
+    <width>860</width>
+    <height>600</height>
+   </size>
   </property>
-  <widget class="QWidget" name="widget" native="true">
-   <property name="geometry">
-    <rect>
-     <x>100</x>
-     <y>0</y>
-     <width>161</width>
-     <height>511</height>
-    </rect>
+  <property name="windowTitle">
+   <string>大猩猩</string>
+  </property>
+  <property name="styleSheet">
+   <string>QWidget#mainIM { background: #f2f4f7; }
+QWidget { font-family: &quot;Microsoft YaHei&quot;; font-size: 13px; color: #333333; }
+QWidget#headerWidget { background: #f2f4f7; }
+QWidget#navigationWidget { background: #e9edf2; border-radius: 10px; }
+QWidget#conversationPanel, QWidget#chatWidget, QWidget#contactsPanel, QWidget#contactInfoWidget, QWidget#friendRequestsPage { background: #ffffff; border-radius: 10px; }
+QLabel { background: transparent; }
+QLabel#brandLabel { font-size: 16px; font-weight: bold; }
+QLabel#statusLabel { color: #808080; font-size: 12px; }
+QLabel#conversationTitle, QLabel#contactsTitle, QLabel#friendRequestsTitle, QLabel#titleLabel { font-size: 16px; font-weight: bold; }
+QLabel#contactsPlaceholder { color: #808080; font-size: 16px; }
+QPushButton { border: none; border-radius: 7px; padding: 7px 12px; background: transparent; }
+QPushButton:hover { background: #e5eaf0; }
+QPushButton#conversationButton, QPushButton#contactsButton { color: #808080; padding: 12px 4px; }
+QPushButton#conversationButton:checked, QPushButton#contactsButton:checked { color: #0099FF; background: #ffffff; font-weight: bold; }
+QPushButton#openChatButton, QPushButton#sendButton { background: #0099FF; color: #FCFCFC; }
+QPushButton#openChatButton:hover, QPushButton#sendButton:hover { background: #008DE8; }
+QPushButton#openChatButton:pressed, QPushButton#sendButton:pressed { background: #007bc9; }
+QPushButton#sendButton:disabled { background: #d9e7f1; color: #ffffff; }
+QPushButton#minimizeButton, QPushButton#maximizeButton, QPushButton#shutdownButton { padding: 0; font-size: 18px; border-radius: 5px; }
+QPushButton#shutdownButton:hover { background: #ff4444; color: white; }
+QLineEdit#peerEdit, QLineEdit#contactsSearchEdit { background: #f2f4f7; border: 1px solid transparent; border-radius: 8px; padding: 8px; selection-background-color: #0099FF; }
+QLineEdit#peerEdit:focus, QLineEdit#contactsSearchEdit:focus { border: 1px solid #0099FF; }
+QListWidget#conversationList { background: #ffffff; border: none; outline: none; }
+QListWidget#conversationList::item { padding: 12px 8px; margin: 3px 0; border-radius: 7px; }
+QListWidget#conversationList::item:hover { background: #f2f6fa; }
+QListWidget#conversationList::item:selected { background: #e6f4ff; color: #008DE8; }
+QTextBrowser#historyBrowser { background: #ffffff; border: none; padding: 8px; selection-background-color: #0099FF; }
+QTextEdit#messageEdit { background: #f7f9fb; border: 1px solid #e5eaf0; border-radius: 10px; padding: 10px; selection-background-color: #0099FF; }
+QTextEdit#messageEdit:focus { border: 1px solid #0099FF; }
+QSplitter::handle { background: transparent; }
+QScrollBar:vertical { background: transparent; width: 8px; margin: 0; }
+QScrollBar::handle:vertical { background: #d2dae3; border-radius: 4px; min-height: 28px; }
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: transparent; }
+QTreeWidget#contactsTree { background: #ffffff; border: none; outline: none; }
+QTreeWidget#contactsTree::item { padding: 12px 6px; border-radius: 7px; }
+QTreeWidget#contactsTree::item:hover { background: #f2f6fa; }
+QTreeWidget#contactsTree::branch,
+QTreeWidget#contactsTree::branch:hover { background: #ffffff; border: none; border-image: none; }
+QTreeWidget#contactsTree::branch:has-children:closed,
+QTreeWidget#contactsTree::branch:has-children:closed:hover { image: url(:/icons/collapse); }
+QTreeWidget#contactsTree::branch:has-children:open,
+QTreeWidget#contactsTree::branch:has-children:open:hover { image: url(:/icons/expand); }
+QTreeWidget#contactsTree::item:selected { background: #e6f4ff; color: #008DE8; }
+QTreeWidget#contactsTree::item:disabled { color: #a0a8b2; }
+QPushButton#friendRequestsButton { text-align: left; background: #f2f6fa; }
+QPushButton#friendRequestsButton:checked { background: #e6f4ff; color: #008DE8; }
+QLabel#friendRequestsEmptyLabel { color: #808080; }
+QListWidget#friendRequestsList { background: white; border: none; }
+</string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout" stretch="0,1">
+   <property name="spacing">
+    <number>0</number>
    </property>
-  </widget>
-  <widget class="QWidget" name="avatarWidget" native="true">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>20</y>
-     <width>41</width>
-     <height>41</height>
-    </rect>
+   <property name="leftMargin">
+    <number>2</number>
    </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>80</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
+   <property name="topMargin">
+    <number>2</number>
    </property>
-   <property name="text">
-    <string>对话</string>
+   <property name="rightMargin">
+    <number>2</number>
    </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton_2">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>120</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
+   <property name="bottomMargin">
+    <number>2</number>
    </property>
-   <property name="text">
-    <string>联系人</string>
-   </property>
-  </widget>
+   <item>
+    <widget class="QWidget" name="headerWidget" native="true">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>46</height>
+      </size>
+     </property>
+     <layout class="QHBoxLayout" name="headerLayout" stretch="1,0,0,0">
+      <property name="spacing">
+       <number>8</number>
+      </property>
+      <property name="leftMargin">
+       <number>16</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>6</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="statusLabel">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="minimizeButton">
+        <property name="minimumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>−</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="maximizeButton">
+        <property name="minimumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>□</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="shutdownButton">
+        <property name="minimumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>×</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="bodyWidget" native="true">
+     <layout class="QHBoxLayout" name="bodyLayout" stretch="0,1">
+      <property name="spacing">
+       <number>3</number>
+      </property>
+      <property name="leftMargin">
+       <number>3</number>
+      </property>
+      <property name="topMargin">
+       <number>3</number>
+      </property>
+      <property name="rightMargin">
+       <number>3</number>
+      </property>
+      <property name="bottomMargin">
+       <number>3</number>
+      </property>
+      <item>
+       <widget class="QWidget" name="navigationWidget" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <layout class="QVBoxLayout" name="navigationLayout">
+         <property name="spacing">
+          <number>5</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>5</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>5</number>
+         </property>
+         <item alignment="Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignVCenter">
+          <widget class="QPushButton" name="conversationButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>40</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>40</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>会话</string>
+           </property>
+           <property name="accessibleName">
+            <string>会话</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="../../res.qrc">
+             <normaloff>:/icons/chat</normaloff>
+             <normalon>:/icons/chat-selected</normalon>:/icons/chat</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>28</width>
+             <height>28</height>
+            </size>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignVCenter">
+          <widget class="QPushButton" name="contactsButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>40</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>40</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>联系人</string>
+           </property>
+           <property name="accessibleName">
+            <string>联系人</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="../../res.qrc">
+             <normaloff>:/icons/people</normaloff>
+             <normalon>:/icons/people-selected</normalon>:/icons/people</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>28</width>
+             <height>28</height>
+            </size>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="navigationSpacer">
+           <property name="orientation">
+            <enum>Qt::Orientation::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSplitter" name="chatSplitter">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="handleWidth">
+         <number>4</number>
+        </property>
+        <property name="childrenCollapsible">
+         <bool>false</bool>
+        </property>
+        <widget class="QStackedWidget" name="listStack">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>300</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="contactsPanel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>1</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>300</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <layout class="QVBoxLayout" name="contactsPanelLayout" stretch="0,0,1">
+           <property name="spacing">
+            <number>12</number>
+           </property>
+           <property name="leftMargin">
+            <number>14</number>
+           </property>
+           <property name="topMargin">
+            <number>18</number>
+           </property>
+           <property name="rightMargin">
+            <number>14</number>
+           </property>
+           <property name="bottomMargin">
+            <number>12</number>
+           </property>
+           <item>
+            <widget class="QLineEdit" name="contactsSearchEdit">
+             <property name="placeholderText">
+              <string>搜索好友或群聊</string>
+             </property>
+             <property name="clearButtonEnabled">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="friendRequestsButton">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>40</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>新的朋友</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTreeWidget" name="contactsTree">
+             <property name="indentation">
+              <number>18</number>
+             </property>
+             <property name="uniformRowHeights">
+              <bool>true</bool>
+             </property>
+             <property name="animated">
+              <bool>true</bool>
+             </property>
+             <property name="headerHidden">
+              <bool>true</bool>
+             </property>
+             <property name="expandsOnDoubleClick">
+              <bool>false</bool>
+             </property>
+             <column>
+              <property name="text">
+               <string>联系人</string>
+              </property>
+             </column>
+             <item>
+              <property name="text">
+               <string>好友</string>
+              </property>
+              <item>
+               <property name="text">
+                <string>暂无好友</string>
+               </property>
+              </item>
+             </item>
+             <item>
+              <property name="text">
+               <string>群聊</string>
+              </property>
+              <item>
+               <property name="text">
+                <string>暂无群聊</string>
+               </property>
+              </item>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="conversationPanel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>1</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>300</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <layout class="QVBoxLayout" name="conversationPanelLayout" stretch="0,1">
+           <property name="spacing">
+            <number>12</number>
+           </property>
+           <property name="leftMargin">
+            <number>14</number>
+           </property>
+           <property name="topMargin">
+            <number>18</number>
+           </property>
+           <property name="rightMargin">
+            <number>14</number>
+           </property>
+           <property name="bottomMargin">
+            <number>12</number>
+           </property>
+           <item>
+            <widget class="QWidget" name="startChatWidget" native="true">
+             <layout class="QHBoxLayout" name="startChatLayout" stretch="1,0">
+              <property name="spacing">
+               <number>6</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLineEdit" name="peerEdit">
+                <property name="placeholderText">
+                 <string>搜索</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="openChatButton">
+                <property name="text">
+                 <string>发起聊天</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QListWidget" name="conversationList"/>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+        <widget class="QStackedWidget" name="detailStack">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>4</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="currentIndex">
+          <number>1</number>
+         </property>
+         <widget class="QWidget" name="emptyChatWidget">
+          <property name="styleSheet">
+           <string>QWidget#emptyChatWidget { background: #ffffff; border-radius: 10px; }</string>
+          </property>
+         </widget>
+         <widget class="QWidget" name="chatWidget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>4</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <layout class="QVBoxLayout" name="chatLayout" stretch="0,1">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QWidget" name="chatHeaderWidget" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>52</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>52</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string>QWidget#chatHeaderWidget { background: #ffffff; border-bottom: 1px solid #e5e5e5; }
+QLabel#chatPeerLabel { color: #111111; font-size: 16px; font-weight: bold; border: none; }</string>
+             </property>
+             <layout class="QHBoxLayout" name="chatHeaderLayout">
+              <property name="leftMargin">
+               <number>18</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>18</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="chatPeerLabel">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="textFormat">
+                 <enum>Qt::TextFormat::PlainText</enum>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QWidget" name="chatContentWidget" native="true">
+             <layout class="QVBoxLayout" name="chatContentLayout" stretch="1,0,0">
+              <property name="spacing">
+               <number>12</number>
+              </property>
+              <property name="leftMargin">
+               <number>18</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>18</number>
+              </property>
+              <property name="bottomMargin">
+               <number>14</number>
+              </property>
+              <item>
+               <widget class="QTextBrowser" name="historyBrowser">
+                <property name="openExternalLinks">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QTextEdit" name="messageEdit">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>110</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>150</height>
+                 </size>
+                </property>
+                <property name="placeholderText">
+                 <string>输入文字消息</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QWidget" name="sendBarWidget" native="true">
+                <layout class="QHBoxLayout" name="sendBarLayout">
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <spacer name="sendSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="sendButton">
+                   <property name="minimumSize">
+                    <size>
+                     <width>90</width>
+                     <height>36</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>发送</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="contactInfoWidget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>4</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <layout class="QVBoxLayout" name="contactInfoLayout">
+           <property name="spacing">
+            <number>12</number>
+           </property>
+           <property name="leftMargin">
+            <number>18</number>
+           </property>
+           <property name="topMargin">
+            <number>18</number>
+           </property>
+           <property name="rightMargin">
+            <number>18</number>
+           </property>
+           <property name="bottomMargin">
+            <number>14</number>
+           </property>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="friendRequestsPage">
+          <layout class="QVBoxLayout" name="friendRequestsLayout" stretch="0,0,1">
+           <property name="spacing">
+            <number>12</number>
+           </property>
+           <property name="leftMargin">
+            <number>18</number>
+           </property>
+           <property name="topMargin">
+            <number>18</number>
+           </property>
+           <property name="rightMargin">
+            <number>18</number>
+           </property>
+           <property name="bottomMargin">
+            <number>14</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="friendRequestsTitle">
+             <property name="text">
+              <string>好友申请</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="friendRequestsEmptyLabel">
+             <property name="text">
+              <string>暂无好友申请</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QListWidget" name="friendRequestsList"/>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
  </widget>
- <resources/>
+ <tabstops>
+  <tabstop>conversationButton</tabstop>
+  <tabstop>contactsButton</tabstop>
+  <tabstop>peerEdit</tabstop>
+  <tabstop>openChatButton</tabstop>
+  <tabstop>conversationList</tabstop>
+  <tabstop>historyBrowser</tabstop>
+  <tabstop>messageEdit</tabstop>
+  <tabstop>sendButton</tabstop>
+  <tabstop>contactsTree</tabstop>
+ </tabstops>
+ <resources>
+  <include location="../../res.qrc"/>
+ </resources>
  <connections/>
 </ui>

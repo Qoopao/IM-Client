@@ -2,8 +2,7 @@
 #include "../ui/login.h"
 #include "../ui/mainIM.h"
 #include <QApplication>
-#include <QMessageBox>
-#include <QTimer>
+#include <QDebug>
 
 namespace application {
 
@@ -67,11 +66,9 @@ void ApplicationController::onLoginSucceeded(const QString& account)
     m_mainWindow = new mainIM(m_session->chatService());
     m_mainWindow->setAttribute(Qt::WA_DeleteOnClose);
 
-    connect(m_mainWindow.data(), &mainIM::logoutRequested, this, &ApplicationController::logout);
+    connect(m_mainWindow.data(), &mainIM::closing, this, &ApplicationController::shutdown);
     connect(m_mainWindow.data(), &QObject::destroyed, this, [this] {
-        if (m_phase == Phase::LoggingOut)
-            QTimer::singleShot(0, this, &ApplicationController::finishLogout);
-        else if (m_phase == Phase::Chat)
+        if (m_phase == Phase::Chat || m_phase == Phase::Stopped)
             QApplication::quit();
     });
 
@@ -84,32 +81,7 @@ void ApplicationController::onLoginSucceeded(const QString& account)
 
     QString error;
     if (!m_historyService.recordSuccessfulLogin(account, error))
-        QMessageBox::warning(m_mainWindow.data(), QStringLiteral("历史账号保存失败"), error);
-}
-
-void ApplicationController::logout()
-{
-    if (m_phase != Phase::Chat || !m_mainWindow)
-        return;
-
-    m_phase = Phase::LoggingOut;
-    m_mainWindow->setEnabled(false);
-    m_session->shutdown();
-    m_mainWindow->hide();
-    m_mainWindow->deleteLater();
-}
-
-void ApplicationController::finishLogout()
-{
-    if (m_phase != Phase::LoggingOut)
-        return;
-
-    if (m_loginWindow) {
-        m_loginWindow->disconnect(this);
-        delete m_loginWindow.data();
-    }
-    m_session.reset();
-    showLogin();
+        qWarning().noquote() << QStringLiteral("历史账号保存失败：") << error;
 }
 
 void ApplicationController::shutdown()

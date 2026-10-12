@@ -70,7 +70,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         src/storage/wcdb/localDatabase.h src/storage/wcdb/localDatabase.cpp
         src/storage/wcdb/accountHistoryRow.h src/storage/wcdb/accountHistoryRow.cpp
         src/service/accountHistoryService.h src/service/accountHistoryService.cpp
-        src/ui/mainIM.h src/ui/mainIM.cpp
+        src/ui/mainIM.h src/ui/mainIM.cpp src/ui/mainIM.ui
         src/model/chatMessage.h
         src/service/chatService.h src/service/chatService.cpp
         src/dao/local/wcdb/wcdbChatDao.h src/dao/local/wcdb/wcdbChatDao.cpp

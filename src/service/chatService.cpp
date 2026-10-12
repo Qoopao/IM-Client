@@ -97,6 +97,9 @@ bool ChatService::openPeer(const QString& account)
 }
 void ChatService::setViewing(bool viewing)
 {
+    if (m_viewing == viewing)
+        return;
+
     m_viewing = viewing;
     if (viewing) {
         markCurrentRead();

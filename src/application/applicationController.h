@@ -26,12 +26,10 @@ public:
 
 private:
     // 应用控制器的状态仅内部使用，所以不考虑放在model下
-    enum class Phase { Idle, Login, Chat, LoggingOut, Stopped };
+    enum class Phase { Idle, Login, Chat, Stopped };
 
     void showLogin();
     void onLoginSucceeded(const QString& account);
-    void logout();
-    void finishLogout();
     void shutdown();
 
     // 历史登陆账号相关

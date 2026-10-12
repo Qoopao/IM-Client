@@ -9,4 +9,12 @@
     <qresource prefix="/cert">
         <file>ca.crt</file>
     </qresource>
+    <qresource prefix="/icons">
+        <file alias="expand">media/icons/expand.svg</file>
+        <file alias="collapse">media/icons/collapse.svg</file>
+        <file alias="chat">media/icons/chat.svg</file>
+        <file alias="chat-selected">media/icons/chat-selected.svg</file>
+        <file alias="people">media/icons/people.svg</file>
+        <file alias="people-selected">media/icons/people-selected.svg</file>
+    </qresource>
 </RCC>
