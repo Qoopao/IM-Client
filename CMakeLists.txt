@@ -48,10 +48,13 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         src/ui/reg.h src/ui/reg.cpp src/ui/reg.ui
         src/ui/loginFailed.h src/ui/loginFailed.cpp src/ui/loginFailed.ui
         src/ui/regFailed.h src/ui/regFailed.cpp src/ui/regFailed.ui
+        src/application/applicationController.h src/application/applicationController.cpp
+        src/application/clientSession.h src/application/clientSession.cpp
+        src/network/webSocketSession.h src/network/webSocketSession.cpp
         src/controller/authController.h
         src/controller/authController.cpp
         src/model/loginResult.h
-        src/model/authModel.h src/model/authModel.cpp
+        src/model/authModel.h
         src/dao/remote/remoteAuthDao.h src/dao/remote/remoteAuthDao.cpp
         src/dao/remote/remoteRegDao.h src/dao/remote/remoteRegDao.cpp
         src/model/regResult.h
@@ -67,6 +70,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         src/storage/wcdb/localDatabase.h src/storage/wcdb/localDatabase.cpp
         src/storage/wcdb/accountHistoryRow.h src/storage/wcdb/accountHistoryRow.cpp
         src/service/accountHistoryService.h src/service/accountHistoryService.cpp
+        src/ui/mainIM.h src/ui/mainIM.cpp
+        src/model/chatMessage.h
+        src/service/chatService.h src/service/chatService.cpp
+        src/dao/local/wcdb/wcdbChatDao.h src/dao/local/wcdb/wcdbChatDao.cpp
+        src/storage/wcdb/chatMessageRow.h src/storage/wcdb/chatMessageRow.cpp
         test/testtls.h test/testtls.cpp
         ${PROTO_FILES}
 

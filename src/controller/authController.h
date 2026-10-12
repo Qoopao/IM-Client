@@ -9,14 +9,18 @@ class AuthController : public QObject
 {
     Q_OBJECT
 public:
-    explicit AuthController(QObject* parent = nullptr);
-    const model::AuthModel& state() const { return m_service.state(); }
+    explicit AuthController(service::AuthService& service, QObject* parent = nullptr);
+    const model::AuthModel& state() const
+    {
+        return m_service.state();
+    }
     void login(const QString& account, const QString& password);
     void logout();
 signals:
     void stateChanged(const model::AuthModel& state);
+
 private:
-    service::AuthService m_service;
+    service::AuthService& m_service;
 };
 
 }

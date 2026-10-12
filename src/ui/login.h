@@ -21,10 +21,11 @@ class LoginWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit LoginWindow(service::AccountHistoryService& history, QWidget *parent = nullptr);
+    explicit LoginWindow(service::AccountHistoryService& history, controller::AuthController& controller, QWidget *parent = nullptr);
     ~LoginWindow() override;
 
     bool isCapsLockOn();
+
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -52,6 +53,6 @@ private:
     QPoint m_dragStartPos;
     bool m_bDragging = false;
 
-    controller::AuthController m_controller; // Controller：动作入口
+    controller::AuthController& m_controller;
 };
 #endif // LOGIN_H

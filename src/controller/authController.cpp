@@ -2,7 +2,9 @@
 
 namespace controller {
 
-AuthController::AuthController(QObject* parent) : QObject(parent)
+AuthController::AuthController(service::AuthService& service, QObject* parent)
+    : QObject(parent)
+    , m_service(service)
 {
     connect(&m_service, &service::AuthService::stateChanged, this, &AuthController::stateChanged);
 }

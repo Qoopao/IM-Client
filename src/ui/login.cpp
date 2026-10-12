@@ -13,10 +13,11 @@
 #include <QStandardPaths>
 
 
-LoginWindow::LoginWindow(service::AccountHistoryService& history, QWidget *parent)
+LoginWindow::LoginWindow(service::AccountHistoryService& history, controller::AuthController& controller, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::LoginWindow)
     , m_history(history)
+    , m_controller(controller)
 {
     ui->setupUi(this);
 
@@ -36,13 +37,6 @@ LoginWindow::LoginWindow(service::AccountHistoryService& history, QWidget *paren
                     lfw->setReason(state.errorMessage);
                     lfw->exec();
                     lfw->setAttribute(Qt::WA_DeleteOnClose);
-                } else if (status == model::AuthModel::Status::Success) {
-                    QString error;
-                    if (m_history.recordSuccessfulLogin(state.account, error))
-                        refreshAccountHistory();
-                    else
-                        QMessageBox::warning(this, QStringLiteral("历史账号保存失败"), error);
-                    QMessageBox::information(this, QStringLiteral("登录成功"), QStringLiteral("欢迎，%1").arg(state.account));
                 }
             });
 

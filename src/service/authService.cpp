@@ -3,7 +3,11 @@
 
 namespace service {
 
-AuthService::AuthService(QObject* parent) : QObject(parent) {}
+AuthService::AuthService(dao::RemoteAuthDao& dao, QObject* parent)
+    : QObject(parent)
+    , m_dao(dao)
+{
+}
 
 void AuthService::login(const QString& account, const QString& password)
 {
@@ -47,13 +51,17 @@ void AuthService::login(const QString& account, const QString& password)
             if (m_state.errorMessage.isEmpty()) {
                 switch (result.error) {
                 case model::LoginError::InvalidCredentials:
-                    m_state.errorMessage = QStringLiteral("账号或密码错误"); break;
+                    m_state.errorMessage = QStringLiteral("账号或密码错误");
+                    break;
                 case model::LoginError::RateLimited:
-                    m_state.errorMessage = QStringLiteral("尝试次数过多，请稍后再试"); break;
+                    m_state.errorMessage = QStringLiteral("尝试次数过多，请稍后再试");
+                    break;
                 case model::LoginError::NetworkError:
-                    m_state.errorMessage = QStringLiteral("网络错误，请检查连接"); break;
+                    m_state.errorMessage = QStringLiteral("网络错误，请检查连接");
+                    break;
                 default:
-                    m_state.errorMessage = QStringLiteral("服务端拒绝登录"); break;
+                    m_state.errorMessage = QStringLiteral("服务端拒绝登录");
+                    break;
                 }
             }
         }
