@@ -6,7 +6,9 @@
 #include "../dao/local/wcdb/wcdbChatDao.h"
 #include "../service/authService.h"
 #include "../service/chatService.h"
+#include "../service/groupService.h"
 #include "../controller/authController.h"
+#include "../controller/friendController.h"
 
 namespace application {
 
@@ -16,13 +18,15 @@ public:
     explicit ClientSession(storage::LocalDatabase& database);
     ~ClientSession();
 
-    controller::AuthController& authController();       // 向上
+    controller::AuthController& authController(); // 向上
     service::ChatService& chatService();
+    service::GroupService& groupService() { return m_groupService; }
+    controller::FriendController& friendController();
     void activate(const QString& account);
     void shutdown();
 
 private:
-    network::WebSocketSession m_connection;         // 管理socket连接状态
+    network::WebSocketSession m_connection; // 管理socket连接状态
 
     dao::RemoteAuthDao m_authDao;
     service::AuthService m_authService;
@@ -30,6 +34,12 @@ private:
 
     dao::WcdbChatDao m_chatDao;
     service::ChatService m_chatService;
+    dao::WcdbGroupDao m_groupDao;
+    service::GroupService m_groupService;
+    dao::RemoteFriendDao m_friendRemote;
+    dao::WcdbFriendDao m_friendLocal;
+    service::FriendService m_friendService;
+    controller::FriendController m_friendController;
 };
 
 }

@@ -16,6 +16,7 @@ public:
     bool load(const QString& owner, QList<model::ChatMessage>& messages, QString& error);       // 加载本地聊天记录
     bool save(const QString& owner, const model::ChatMessage& message, QString& error);            // 保存聊天记录到本地
     bool markRead(const QString& owner, const QString& conversation, QString& error);               // 数据库标记消息已读
+    bool clearConversation(const QString& owner, const QString& peer, qint64 deletedSeq, QString& error);
 
 private:
     bool initialize(QString& error);

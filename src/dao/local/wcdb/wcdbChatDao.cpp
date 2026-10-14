@@ -70,6 +70,20 @@ bool WcdbChatDao::save(const QString& owner, const model::ChatMessage& m, QStrin
     }
     return true;
 }
+bool WcdbChatDao::clearConversation(const QString& owner, const QString& peer, qint64 deletedSeq, QString& error)
+{
+    if (!initialize(error))
+        return false;
+    using Row = storage::ChatMessageRow;
+    if (!m_database.database().deleteObjects(storage::chatMessageTable,
+        (WCDB_FIELD(Row::owner) == owner.toStdString()) && (WCDB_FIELD(Row::peer) == peer.toStdString()) &&
+        ((WCDB_FIELD(Row::seq) <= deletedSeq) || (WCDB_FIELD(Row::seq) == 0)))) {
+        error = QStringLiteral("无法清理已删除好友的聊天记录");
+        return false;
+    }
+    return true;
+}
+
 bool WcdbChatDao::markRead(const QString& owner, const QString& conversation, QString& error)
 {
     if (!initialize(error))

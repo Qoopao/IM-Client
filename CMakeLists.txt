@@ -24,6 +24,10 @@ find_package(gRPC CONFIG REQUIRED)
 find_package(WCDB CONFIG REQUIRED)
 
 if(MSVC)
+    set(CMAKE_CXX_COMPILER_LAUNCHER
+        "powershell;-NoProfile;-ExecutionPolicy;Bypass;-File;${CMAKE_SOURCE_DIR}/tools/msvc-compile.ps1")
+    set(CMAKE_CXX_CL_SHOWINCLUDES_PREFIX "Note: including file:")
+    set(CMAKE_CL_SHOWINCLUDES_PREFIX "${CMAKE_CXX_CL_SHOWINCLUDES_PREFIX}")
     add_compile_options(/utf-8)
 endif()
 
@@ -34,7 +38,7 @@ set(PROJECT_SOURCES
         src/ui/login.ui
 )
 
-file(GLOB_RECURSE PROTO_FILES "src/proto/*.*")
+file(GLOB_RECURSE PROTO_FILES CONFIGURE_DEPENDS "src/proto/*.*")
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(IM-client
@@ -70,8 +74,18 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         src/storage/wcdb/localDatabase.h src/storage/wcdb/localDatabase.cpp
         src/storage/wcdb/accountHistoryRow.h src/storage/wcdb/accountHistoryRow.cpp
         src/service/accountHistoryService.h src/service/accountHistoryService.cpp
-        src/ui/mainIM.h src/ui/mainIM.cpp src/ui/mainIM.ui
+        src/ui/mainIM.h src/ui/mainIM.cpp src/ui/mainIM.ui src/ui/conversationItem.ui
+        src/model/friendModel.h
+        src/controller/friendController.h src/controller/friendController.cpp
+        src/service/friendService.h src/service/friendService.cpp
+        src/dao/remote/remoteFriendDao.h src/dao/remote/remoteFriendDao.cpp
+        src/dao/local/wcdb/wcdbFriendDao.h src/dao/local/wcdb/wcdbFriendDao.cpp
+        src/storage/wcdb/friendSnapshotRow.h src/storage/wcdb/friendSnapshotRow.cpp
         src/model/chatMessage.h
+        src/service/groupService.h src/service/groupService.cpp
+        src/dao/local/wcdb/wcdbGroupDao.h src/dao/local/wcdb/wcdbGroupDao.cpp
+        src/storage/wcdb/groupRow.h src/storage/wcdb/groupRow.cpp
+        src/ui/groupPanel.h src/ui/groupPanel.cpp src/ui/groupPanel.ui
         src/service/chatService.h src/service/chatService.cpp
         src/dao/local/wcdb/wcdbChatDao.h src/dao/local/wcdb/wcdbChatDao.cpp
         src/storage/wcdb/chatMessageRow.h src/storage/wcdb/chatMessageRow.cpp
@@ -136,6 +150,48 @@ if(QT_VERSION_MAJOR EQUAL 6)
 endif()
 
 option(IM_CLIENT_BUILD_HISTORY_TESTS "Build local account history tests" OFF)
+option(IM_CLIENT_BUILD_GROUP_TESTS "Build group cache and UI smoke tests" OFF)
+if(IM_CLIENT_BUILD_GROUP_TESTS)
+    enable_testing()
+    add_executable(group-cache-test
+        test/groupCacheTest.cpp
+        src/storage/wcdb/localDatabase.cpp
+        src/storage/wcdb/accountHistoryRow.cpp
+        src/storage/wcdb/groupRow.cpp
+        src/dao/local/wcdb/wcdbGroupDao.cpp
+        src/service/groupService.cpp
+        src/ui/groupPanel.cpp
+        src/ui/mainIM.cpp
+        src/service/chatService.cpp
+        src/service/friendService.cpp
+        src/controller/friendController.cpp
+        src/dao/remote/remoteFriendDao.cpp
+        src/dao/local/wcdb/wcdbChatDao.cpp
+        src/dao/local/wcdb/wcdbFriendDao.cpp
+        src/storage/wcdb/chatMessageRow.cpp
+        src/storage/wcdb/friendSnapshotRow.cpp
+        src/proto/friend.pb.cc
+        src/proto/msg.pb.cc
+        src/proto/conversation.pb.cc
+        res.qrc
+        src/network/webSocketSession.cpp
+        src/proto/groupchat.pb.cc
+        src/proto/sdkws.pb.cc
+    )
+    target_compile_definitions(group-cache-test PRIVATE NOMINMAX)
+    target_link_libraries(group-cache-test PRIVATE Qt6::Widgets Qt6::Network Qt6::WebSockets WCDB::WCDB protobuf::libprotobuf)
+    add_test(NAME group-cache COMMAND group-cache-test -platform offscreen)
+    add_executable(chat-read-test
+        test/chatReadTest.cpp src/network/webSocketSession.h
+        src/service/chatService.cpp
+        src/storage/wcdb/localDatabase.cpp src/storage/wcdb/accountHistoryRow.cpp
+        src/storage/wcdb/chatMessageRow.cpp src/dao/local/wcdb/wcdbChatDao.cpp
+        src/proto/sdkws.pb.cc src/proto/msg.pb.cc src/proto/conversation.pb.cc
+    )
+    target_compile_definitions(chat-read-test PRIVATE NOMINMAX)
+    target_link_libraries(chat-read-test PRIVATE Qt6::Core Qt6::Network Qt6::WebSockets WCDB::WCDB protobuf::libprotobuf)
+    add_test(NAME chat-read COMMAND chat-read-test)
+endif()
 if(IM_CLIENT_BUILD_HISTORY_TESTS)
     enable_testing()
     add_executable(account-history-test

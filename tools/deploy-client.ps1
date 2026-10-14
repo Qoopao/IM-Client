@@ -16,6 +16,52 @@ function Read-CacheValue([string]$Cache, [string]$Name)
     return ""
 }
 
+function Stop-DeployedClient([string]$ExecutablePath)
+{
+    $targetPath = [IO.Path]::GetFullPath($ExecutablePath)
+    foreach ($clientProcess in @(Get-Process -Name "IM-client" -ErrorAction SilentlyContinue)) {
+        if (!$clientProcess.Path -or ![string]::Equals(
+            [IO.Path]::GetFullPath($clientProcess.Path), $targetPath,
+            [StringComparison]::OrdinalIgnoreCase)) {
+            continue
+        }
+
+        Write-Host "Closing deployed client: PID $($clientProcess.Id), $targetPath"
+        # Hidden/background instances have no main window, so they need termination.
+        if (!$clientProcess.HasExited) {
+            $closeRequested = $clientProcess.CloseMainWindow()
+            if ($closeRequested) {
+                $null = $clientProcess.WaitForExit(5000)
+            }
+        }
+        if (!$clientProcess.HasExited) {
+            Write-Host "Stopping remaining client process: PID $($clientProcess.Id)"
+            $clientProcess.Kill()
+            if (!$clientProcess.WaitForExit(5000)) {
+                throw "Client process $($clientProcess.Id) did not exit. Deployment was stopped before copying files."
+            }
+        }
+        $clientProcess.Dispose()
+    }
+}
+
+function Copy-DeploymentFile([string]$File, [string]$Directory)
+{
+    for ($attempt = 0; $attempt -lt 10; $attempt++) {
+        try {
+            Copy-Item -LiteralPath $File -Destination $Directory -Force
+            return
+        } catch {
+            $exception = $_.Exception
+            while ($exception.InnerException) { $exception = $exception.InnerException }
+            $win32Code = $exception.HResult -band 0xFFFF
+            if ($win32Code -notin @(32, 33) -or $attempt -eq 9) { throw }
+            # Windows/antivirus can briefly retain a file lock after process exit.
+            Start-Sleep -Milliseconds 300
+        }
+    }
+}
+
 try {
     if ($Source) {
         $sourcePath = (Resolve-Path -LiteralPath $Source).Path
@@ -106,14 +152,17 @@ try {
         throw "The deployment source must be a build executable, not the deployment output."
     }
 
-    New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
-    Copy-Item -LiteralPath $executable.FullName -Destination $outputDirectory -Force
-    Get-ChildItem -LiteralPath $dependencyBin -Filter *.dll -File |
-        Copy-Item -Destination $outputDirectory -Force
-
-    $env:PATH = "$qtBin;$dependencyBin;$env:PATH"
     Write-Host "Source: $($executable.FullName)"
     Write-Host "Configuration: $configuration"
+    Write-Host "Target: $outputDirectory"
+    Stop-DeployedClient (Join-Path $outputDirectory "IM-client.exe")
+    New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
+    Copy-DeploymentFile $executable.FullName $outputDirectory
+    foreach ($dependency in Get-ChildItem -LiteralPath $dependencyBin -Filter *.dll -File) {
+        Copy-DeploymentFile $dependency.FullName $outputDirectory
+    }
+
+    $env:PATH = "$qtBin;$dependencyBin;$env:PATH"
     $opensslRoot = Split-Path -Parent $dependencyBin
     & $deployTool $deployMode --force --compiler-runtime --openssl-root $opensslRoot (Join-Path $outputDirectory "IM-client.exe")
     if ($LASTEXITCODE -ne 0) {

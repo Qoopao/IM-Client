@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>conversationItem</class>
+ <widget class="QWidget" name="conversationItem">
+  <property name="geometry"><rect><x>0</x><y>0</y><width>260</width><height>64</height></rect></property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing"><number>4</number></property>
+   <property name="leftMargin"><number>8</number></property>
+   <property name="topMargin"><number>6</number></property>
+   <property name="rightMargin"><number>8</number></property>
+   <property name="bottomMargin"><number>6</number></property>
+   <item><widget class="QLabel" name="nameLabel">
+    <property name="minimumSize"><size><width>0</width><height>22</height></size></property>
+    <property name="styleSheet"><string>color: #333333; font-size: 14px; background: transparent;</string></property>
+    <property name="textFormat"><enum>Qt::PlainText</enum></property>
+    <property name="text"><string>会话名称</string></property>
+   </widget></item>
+   <item><widget class="QLabel" name="previewLabel">
+    <property name="minimumSize"><size><width>0</width><height>18</height></size></property>
+    <property name="styleSheet"><string>color: #999999; font-size: 12px; background: transparent;</string></property>
+    <property name="textFormat"><enum>Qt::PlainText</enum></property>
+    <property name="text"><string>最新消息摘要</string></property>
+   </widget></item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

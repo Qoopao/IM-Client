@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GroupPanel</class>
+ <widget class="QWidget" name="GroupPanel">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>420</width>
+    <height>464</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>420</width>
+    <height>440</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>群资料</string>
+  </property>
+  <property name="styleSheet">
+   <string>QWidget { background: #ffffff; }
+QLabel#groupNameLabel { font-size: 20px; font-weight: bold; }
+QPushButton { padding: 8px 16px; border-radius: 6px; background: #f2f4f7; }
+QPushButton:hover:enabled { background: #e5eaf0; }
+QPushButton:pressed:enabled { background: #dce3eb; }
+QPushButton:disabled { background: #f2f4f7; color: #a0a8b2; }
+QPushButton#groupMessageButton { background: #0099ff; color: white; }
+QPushButton#groupMessageButton:hover:enabled { background: #008de8; }
+QPushButton#groupMessageButton:pressed:enabled { background: #007bc9; }
+QPushButton#groupMessageButton:disabled { background: #d9e7f1; color: white; }
+QLineEdit { padding: 8px; border: 1px solid #e1e6eb; border-radius: 6px; }</string>
+  </property>
+  <layout class="QVBoxLayout" name="groupPanelLayout">
+   <property name="spacing">
+    <number>14</number>
+   </property>
+   <property name="leftMargin">
+    <number>24</number>
+   </property>
+   <property name="topMargin">
+    <number>24</number>
+   </property>
+   <property name="rightMargin">
+    <number>24</number>
+   </property>
+   <property name="bottomMargin">
+    <number>24</number>
+   </property>
+   <item>
+    <widget class="QLabel" name="groupStatusLabel">
+     <property name="text">
+      <string/>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QStackedWidget" name="groupDetailsStack">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="groupSummaryPage">
+      <layout class="QVBoxLayout" name="groupSummaryLayout">
+       <item>
+        <widget class="QLabel" name="groupNameLabel">
+         <property name="text">
+          <string>群名称</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="groupNumberLabel">
+         <property name="text">
+          <string>群号：1000000000</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="groupMemberCountLabel">
+         <property name="text">
+          <string>成员：1 人</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="groupStateLabel">
+         <property name="text">
+          <string>我的身份：群成员</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="groupMessageButton">
+         <property name="text">
+          <string>发消息</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="groupMembersButton">
+         <property name="text">
+          <string>群成员</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="groupOwnerLayout">
+         <item>
+          <layout class="QHBoxLayout" name="groupRenameLayout">
+           <item>
+            <widget class="QLineEdit" name="groupNameEdit">
+             <property name="maxLength">
+              <number>128</number>
+             </property>
+             <property name="placeholderText">
+              <string>输入群名称</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="renameGroupButton">
+             <property name="text">
+              <string>修改群名</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QPushButton" name="groupApplicationsButton">
+           <property name="text">
+            <string>入群审核</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="dismissGroupButton">
+           <property name="text">
+            <string>解散群聊</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QPushButton" name="leaveGroupButton">
+         <property name="text">
+          <string>退出群聊</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="groupSummarySpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="groupMembersPage">
+      <layout class="QVBoxLayout" name="groupMembersLayout">
+       <item>
+        <widget class="QLabel" name="groupMembersTitle">
+         <property name="text">
+          <string>群成员</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QListWidget" name="groupMembersList"/>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="groupMembersActions">
+         <item>
+          <widget class="QPushButton" name="membersBackButton">
+           <property name="text">
+            <string>返回群资料</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="kickMemberButton">
+           <property name="text">
+            <string>移出选中成员</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="groupApplicationsPage">
+      <layout class="QVBoxLayout" name="groupApplicationsLayout">
+       <item>
+        <widget class="QLabel" name="groupApplicationsTitle">
+         <property name="text">
+          <string>待审核入群申请</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="groupApplicationsEmptyLabel">
+         <property name="text">
+          <string>暂无待审核申请</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QListWidget" name="groupApplicationsList"/>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="groupReviewActions">
+         <item>
+          <widget class="QPushButton" name="applicationsBackButton">
+           <property name="text">
+            <string>返回群资料</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="acceptGroupApplicationButton">
+           <property name="text">
+            <string>同意</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="rejectGroupApplicationButton">
+           <property name="text">
+            <string>拒绝</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="myGroupApplicationsPage">
+      <layout class="QVBoxLayout" name="myGroupApplicationsLayout">
+       <item>
+        <widget class="QLabel" name="myGroupApplicationsTitle">
+         <property name="text">
+          <string>我的入群申请</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="myGroupApplicationsEmptyLabel">
+         <property name="text">
+          <string>暂无入群申请</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QListWidget" name="myGroupApplicationsList"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="myApplicationsBackButton">
+         <property name="text">
+          <string>关闭</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

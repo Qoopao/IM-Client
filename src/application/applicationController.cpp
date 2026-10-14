@@ -63,7 +63,7 @@ void ApplicationController::onLoginSucceeded(const QString& account)
         return;
 
     m_phase = Phase::Chat;
-    m_mainWindow = new mainIM(m_session->chatService());
+    m_mainWindow = new mainIM(m_session->chatService(), m_session->friendController(), m_session->groupService());
     m_mainWindow->setAttribute(Qt::WA_DeleteOnClose);
 
     connect(m_mainWindow.data(), &mainIM::closing, this, &ApplicationController::shutdown);

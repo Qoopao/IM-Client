@@ -24,7 +24,12 @@
 QWidget { font-family: &quot;Microsoft YaHei&quot;; font-size: 13px; color: #333333; }
 QWidget#headerWidget { background: #f2f4f7; }
 QWidget#navigationWidget { background: #e9edf2; border-radius: 10px; }
-QWidget#conversationPanel, QWidget#chatWidget, QWidget#contactsPanel, QWidget#contactInfoWidget, QWidget#friendRequestsPage { background: #ffffff; border-radius: 10px; }
+QWidget#conversationPanel, QWidget#chatWidget, QWidget#contactsPanel, QWidget#contactInfoWidget, QWidget#friendRequestsPage, QWidget#addFriendPage, QWidget#addContactContent { background: #ffffff; border-radius: 10px; }
+QScrollArea#addContactScrollArea { background: white; border: none; }
+QPushButton#createGroupButton, QPushButton#groupSearchActionButton { background: #0099FF; color: white; }
+QPushButton#createGroupButton:disabled, QPushButton#groupSearchActionButton:disabled { background: #d9e7f1; }
+QLineEdit#createGroupNameEdit, QLineEdit#groupApplicationMessageEdit { background: #f7f9fb; border: 1px solid #e5eaf0; border-radius: 8px; padding: 8px; }
+QLabel#userSearchSectionTitle, QLabel#groupSearchSectionTitle, QLabel#createGroupTitle { font-weight: bold; }
 QLabel { background: transparent; }
 QLabel#brandLabel { font-size: 16px; font-weight: bold; }
 QLabel#statusLabel { color: #808080; font-size: 12px; }
@@ -34,16 +39,16 @@ QPushButton { border: none; border-radius: 7px; padding: 7px 12px; background: t
 QPushButton:hover { background: #e5eaf0; }
 QPushButton#conversationButton, QPushButton#contactsButton { color: #808080; padding: 12px 4px; }
 QPushButton#conversationButton:checked, QPushButton#contactsButton:checked { color: #0099FF; background: #ffffff; font-weight: bold; }
-QPushButton#openChatButton, QPushButton#sendButton { background: #0099FF; color: #FCFCFC; }
-QPushButton#openChatButton:hover, QPushButton#sendButton:hover { background: #008DE8; }
-QPushButton#openChatButton:pressed, QPushButton#sendButton:pressed { background: #007bc9; }
+QPushButton#sendButton { background: #0099FF; color: #FCFCFC; }
+QPushButton#sendButton:hover { background: #008DE8; }
+QPushButton#sendButton:pressed { background: #007bc9; }
 QPushButton#sendButton:disabled { background: #d9e7f1; color: #ffffff; }
 QPushButton#minimizeButton, QPushButton#maximizeButton, QPushButton#shutdownButton { padding: 0; font-size: 18px; border-radius: 5px; }
 QPushButton#shutdownButton:hover { background: #ff4444; color: white; }
-QLineEdit#peerEdit, QLineEdit#contactsSearchEdit { background: #f2f4f7; border: 1px solid transparent; border-radius: 8px; padding: 8px; selection-background-color: #0099FF; }
-QLineEdit#peerEdit:focus, QLineEdit#contactsSearchEdit:focus { border: 1px solid #0099FF; }
+QLineEdit#conversationSearchEdit, QLineEdit#contactsSearchEdit { background: #f2f4f7; border: 1px solid transparent; border-radius: 8px; padding: 8px; selection-background-color: #0099FF; }
+QLineEdit#conversationSearchEdit:focus, QLineEdit#contactsSearchEdit:focus { border: 1px solid #0099FF; }
 QListWidget#conversationList { background: #ffffff; border: none; outline: none; }
-QListWidget#conversationList::item { padding: 12px 8px; margin: 3px 0; border-radius: 7px; }
+QListWidget#conversationList::item { padding: 0; margin: 0; border-radius: 7px; }
 QListWidget#conversationList::item:hover { background: #f2f6fa; }
 QListWidget#conversationList::item:selected { background: #e6f4ff; color: #008DE8; }
 QTextBrowser#historyBrowser { background: #ffffff; border: none; padding: 8px; selection-background-color: #0099FF; }
@@ -69,6 +74,12 @@ QPushButton#friendRequestsButton { text-align: left; background: #f2f6fa; }
 QPushButton#friendRequestsButton:checked { background: #e6f4ff; color: #008DE8; }
 QLabel#friendRequestsEmptyLabel { color: #808080; }
 QListWidget#friendRequestsList { background: white; border: none; }
+
+QPushButton#addFriendButton, QPushButton#refreshFriendsButton { padding: 0; font-size: 18px; }
+QPushButton#lookupUserButton, QPushButton#sendApplicationButton, QPushButton#acceptApplicationButton, QPushButton#messageFriendButton { background: #0099FF; color: white; }
+QPushButton#lookupUserButton:disabled, QPushButton#sendApplicationButton:disabled, QPushButton#acceptApplicationButton:disabled { background: #d9e7f1; }
+QLineEdit#friendAccountEdit, QLineEdit#applicationMessageEdit { background: #f2f4f7; border: 1px solid transparent; border-radius: 8px; padding: 8px; }
+QLabel#contactNameLabel, QLabel#addFriendTitle, QLabel#lookupUserNameLabel { font-size: 16px; font-weight: bold; }
 </string>
   </property>
   <layout class="QVBoxLayout" name="mainLayout" stretch="0,1">
@@ -367,7 +378,7 @@ QListWidget#friendRequestsList { background: white; border: none; }
          </property>
          <property name="minimumSize">
           <size>
-           <width>200</width>
+           <width>230</width>
            <height>0</height>
           </size>
          </property>
@@ -416,13 +427,78 @@ QListWidget#friendRequestsList { background: white; border: none; }
             <number>12</number>
            </property>
            <item>
-            <widget class="QLineEdit" name="contactsSearchEdit">
-             <property name="placeholderText">
-              <string>搜索好友或群聊</string>
-             </property>
-             <property name="clearButtonEnabled">
-              <bool>true</bool>
-             </property>
+            <widget class="QWidget" name="contactsSearchWidget" native="true">
+             <layout class="QHBoxLayout" name="contactsSearchLayout" stretch="1,0,0">
+              <property name="spacing">
+               <number>4</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLineEdit" name="contactsSearchEdit">
+                <property name="placeholderText">
+                 <string>搜索好友或群聊</string>
+                </property>
+                <property name="clearButtonEnabled">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="addFriendButton">
+                <property name="minimumSize">
+                 <size>
+                  <width>28</width>
+                  <height>34</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>28</width>
+                  <height>34</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>添加联系人 / 创建群聊</string>
+                </property>
+                <property name="text">
+                 <string>+</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="refreshFriendsButton">
+                <property name="minimumSize">
+                 <size>
+                  <width>28</width>
+                  <height>34</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>28</width>
+                  <height>34</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>刷新好友和申请</string>
+                </property>
+                <property name="text">
+                 <string>↻</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
            <item>
@@ -524,7 +600,7 @@ QListWidget#friendRequestsList { background: white; border: none; }
            </property>
            <item>
             <widget class="QWidget" name="startChatWidget" native="true">
-             <layout class="QHBoxLayout" name="startChatLayout" stretch="1,0">
+             <layout class="QHBoxLayout" name="startChatLayout" stretch="1">
               <property name="spacing">
                <number>6</number>
               </property>
@@ -541,16 +617,9 @@ QListWidget#friendRequestsList { background: white; border: none; }
                <number>0</number>
               </property>
               <item>
-               <widget class="QLineEdit" name="peerEdit">
+               <widget class="QLineEdit" name="conversationSearchEdit">
                 <property name="placeholderText">
                  <string>搜索</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="openChatButton">
-                <property name="text">
-                 <string>发起聊天</string>
                 </property>
                </widget>
               </item>
@@ -558,7 +627,9 @@ QListWidget#friendRequestsList { background: white; border: none; }
             </widget>
            </item>
            <item>
-            <widget class="QListWidget" name="conversationList"/>
+            <widget class="QListWidget" name="conversationList">
+             <property name="spacing"><number>3</number></property>
+            </widget>
            </item>
           </layout>
          </widget>
@@ -571,7 +642,7 @@ QListWidget#friendRequestsList { background: white; border: none; }
           </sizepolicy>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>4</number>
          </property>
          <widget class="QWidget" name="emptyChatWidget">
           <property name="styleSheet">
@@ -642,6 +713,13 @@ QLabel#chatPeerLabel { color: #111111; font-size: 16px; font-weight: bold; borde
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="groupInfoButton">
+                <property name="text">
+                 <string>资料</string>
                 </property>
                </widget>
               </item>
@@ -764,10 +842,78 @@ QLabel#chatPeerLabel { color: #111111; font-size: 16px; font-weight: bold; borde
            <property name="bottomMargin">
             <number>14</number>
            </property>
+           <item>
+            <widget class="QWidget" name="contactDetailsWidget" native="true">
+             <layout class="QVBoxLayout" name="contactDetailsLayout">
+              <item>
+               <widget class="QLabel" name="contactNameLabel">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="textFormat">
+                 <enum>Qt::TextFormat::PlainText</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="contactAccountLabel">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="textFormat">
+                 <enum>Qt::TextFormat::PlainText</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="contactRemarkLabel">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="textFormat">
+                 <enum>Qt::TextFormat::PlainText</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="messageFriendButton">
+                <property name="text">
+                 <string>发消息</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="deleteFriendButton">
+                <property name="styleSheet">
+                 <string>QPushButton#deleteFriendButton { color: #d92d20; background: #fff1f0; }
+QPushButton#deleteFriendButton:hover { background: #ffe3df; }
+QPushButton#deleteFriendButton:disabled { color: #a0a8b2; background: #f2f4f7; }</string>
+                </property>
+                <property name="text">
+                 <string>删除好友</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="contactDetailsSpacer">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
           </layout>
          </widget>
          <widget class="QWidget" name="friendRequestsPage">
-          <layout class="QVBoxLayout" name="friendRequestsLayout" stretch="0,0,1">
+          <layout class="QVBoxLayout" name="friendRequestsLayout" stretch="0,0,1,0">
            <property name="spacing">
             <number>12</number>
            </property>
@@ -800,6 +946,308 @@ QLabel#chatPeerLabel { color: #111111; font-size: 16px; font-weight: bold; borde
            <item>
             <widget class="QListWidget" name="friendRequestsList"/>
            </item>
+           <item>
+            <widget class="QWidget" name="applicationActionsWidget" native="true">
+             <layout class="QVBoxLayout" name="applicationActionsLayout">
+              <item>
+               <widget class="QLabel" name="applicationDetailsLabel">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="textFormat">
+                 <enum>Qt::TextFormat::PlainText</enum>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="applicationButtonsLayout">
+                <item>
+                 <widget class="QPushButton" name="acceptApplicationButton">
+                  <property name="text">
+                   <string>接受</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="rejectApplicationButton">
+                  <property name="text">
+                   <string>拒绝</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="addFriendPage">
+          <layout class="QVBoxLayout" name="addContactPageLayout">
+           <item>
+            <widget class="QScrollArea" name="addContactScrollArea">
+             <property name="frameShape">
+              <enum>QFrame::Shape::NoFrame</enum>
+             </property>
+             <property name="widgetResizable">
+              <bool>true</bool>
+             </property>
+             <widget class="QWidget" name="addContactContent">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>677</width>
+                <height>713</height>
+               </rect>
+              </property>
+              <layout class="QVBoxLayout" name="addFriendLayout">
+               <property name="spacing">
+                <number>12</number>
+               </property>
+               <property name="leftMargin">
+                <number>18</number>
+               </property>
+               <property name="topMargin">
+                <number>18</number>
+               </property>
+               <property name="rightMargin">
+                <number>18</number>
+               </property>
+               <property name="bottomMargin">
+                <number>14</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="addFriendTitle">
+                 <property name="text">
+                  <string>添加联系人</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="lookupUserLayout">
+                 <item>
+                  <widget class="QLineEdit" name="friendAccountEdit">
+                   <property name="maxLength">
+                    <number>10</number>
+                   </property>
+                   <property name="placeholderText">
+                    <string>输入账号或群号，同时查找用户和群聊</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="lookupUserButton">
+                   <property name="text">
+                    <string>查找</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QLabel" name="friendResultLabel">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="textFormat">
+                  <enum>Qt::TextFormat::PlainText</enum>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QWidget" name="lookupDetailsWidget" native="true">
+                 <layout class="QVBoxLayout" name="lookupDetailsLayout">
+                  <item>
+                   <widget class="QLabel" name="userSearchSectionTitle">
+                    <property name="text">
+                     <string>用户</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="lookupUserNameLabel">
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="textFormat">
+                     <enum>Qt::TextFormat::PlainText</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="lookupUserAccountLabel">
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="applicationMessageEdit">
+                    <property name="maxLength">
+                     <number>128</number>
+                    </property>
+                    <property name="placeholderText">
+                     <string>填写好友申请说明（选填）</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="sendApplicationButton">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
+                    <property name="text">
+                     <string>发送好友申请</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="groupSearchResultLayout">
+                 <item>
+                  <widget class="QLabel" name="groupSearchSectionTitle">
+                   <property name="text">
+                    <string>群聊</string>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="searchGroupNameLabel">
+                   <property name="text">
+                    <string>群名称</string>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="searchGroupNumberLabel">
+                   <property name="text">
+                    <string>群号：</string>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="searchGroupMembersLabel">
+                   <property name="text">
+                    <string>成员：</string>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="groupApplicationMessageEdit">
+                   <property name="maxLength">
+                    <number>128</number>
+                   </property>
+                   <property name="placeholderText">
+                    <string>填写入群申请说明（选填）</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="groupSearchActionButton">
+                   <property name="text">
+                    <string>申请加入</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QLabel" name="groupSearchStatusLabel">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="myGroupApplicationsButton">
+                 <property name="text">
+                  <string>我的入群申请</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="createGroupLayout">
+                 <item>
+                  <widget class="QLabel" name="createGroupTitle">
+                   <property name="text">
+                    <string>创建群聊</string>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="createGroupNameLayout">
+                   <item>
+                    <widget class="QLineEdit" name="createGroupNameEdit">
+                     <property name="maxLength">
+                      <number>128</number>
+                     </property>
+                     <property name="placeholderText">
+                      <string>填写群名称</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="createGroupButton">
+                     <property name="text">
+                      <string>创建</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="createGroupStatusLabel">
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <spacer name="addFriendSpacer">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
+            </widget>
+           </item>
           </layout>
          </widget>
         </widget>
@@ -813,8 +1261,7 @@ QLabel#chatPeerLabel { color: #111111; font-size: 16px; font-weight: bold; borde
  <tabstops>
   <tabstop>conversationButton</tabstop>
   <tabstop>contactsButton</tabstop>
-  <tabstop>peerEdit</tabstop>
-  <tabstop>openChatButton</tabstop>
+  <tabstop>conversationSearchEdit</tabstop>
   <tabstop>conversationList</tabstop>
   <tabstop>historyBrowser</tabstop>
   <tabstop>messageEdit</tabstop>
